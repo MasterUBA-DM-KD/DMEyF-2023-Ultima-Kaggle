@@ -1,8 +1,12 @@
 ## Other
+*.db
 .idea/
 mlruns/
 secrets/
 *.DS_Store
+.ruff_cache/
+*.parquet
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

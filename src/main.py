@@ -1,10 +1,8 @@
-# docformatter Package Imports
-from src.model.training import training_loop
-from src.preprocess.etl import extract, load, transform
+from src.model.training import preprocess, training_loop
+from src.preprocess.etl import extract_transform_load
 
 if __name__ == "__main__":
-    X, y = extract()
-    X, y = transform(X, y)
-    X, y = load(X, y)
+    extract_transform_load()
+    X, y = preprocess()
 
     training_loop(X, y)

@@ -48,10 +48,6 @@ max-complexity = 10
 [tool.isort]
 known_first_party = 'docformatter'
 known_third_party = ['toml']
-import_heading_firstparty = 'docformatter Package Imports'
-import_heading_localfolder = 'docformatter Local Imports'
-import_heading_stdlib = 'Standard Library Imports'
-import_heading_thirdparty = 'Third Party Imports'
 multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
