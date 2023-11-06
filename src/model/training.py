@@ -37,7 +37,6 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
         "num_leaves": trial.suggest_int("num_leaves", 20, 3000, step=20),
         "max_depth": trial.suggest_int("max_depth", 3, 12),
         "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 200, 10000, step=100),
-        "max_bin": trial.suggest_int("max_bin", 200, 300),
         "lambda_l1": trial.suggest_int("lambda_l1", 0, 100, step=5),
         "lambda_l2": trial.suggest_int("lambda_l2", 0, 100, step=5),
         "min_gain_to_split": trial.suggest_float("min_gain_to_split", 0, 15),
