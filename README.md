@@ -6,7 +6,7 @@ Set environment variables:
 
 ```bash
 export MLFLOW_ARTIFACT_ROOT=gs://mlflow-artifacts-uribe/mlruns
-export MLFLOW_TRACKING_URI=sqlite:///database/mlruns.db
+export MLFLOW_TRACKING_URI=sqlite:///buckets/b1/database/mlruns.db
 ```
 
 Start MLFlow server:

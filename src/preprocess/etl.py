@@ -30,7 +30,7 @@ def extract(con: duckdb.DuckDBPyConnection, replace: bool = False) -> None:
     )
 
 
-def transform(con: duckdb.DuckDBPyConnection) -> None:
+def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: bool = False) -> None:
     con.sql(
         """
             CREATE OR REPLACE TABLE competencia_03 AS (
@@ -67,30 +67,32 @@ def transform(con: duckdb.DuckDBPyConnection) -> None:
         );
         """
     )
-
-    print("Creating lags", datetime.now())
-    for i in LAG_FILES:
-        with open(i) as f:
-            query = f.read()
-        con.sql(
-            f"""
-                CREATE OR REPLACE TABLE competencia_03 AS (
-                    {query}
-                );
-            """
-        )
-
-    print("Creating delta lags", datetime.now())
-    for i in DELTA_FILES:
-        with open(i) as f:
-            query = f.read()
-        con.sql(
-            f"""
-                CREATE OR REPLACE TABLE competencia_03 AS (
-                    {query}
-                );
+    if lags:
+        print("Creating lags", datetime.now())
+        for i in LAG_FILES:
+            with open(i) as f:
+                query = f.read()
+            print(f"Creating lag {i}", datetime.now())
+            con.sql(
+                f"""
+                    CREATE OR REPLACE TABLE competencia_03 AS (
+                        {query}
+                    );
                 """
-        )
+            )
+    if delta_lags:
+        print("Creating delta lags", datetime.now())
+        for i in DELTA_FILES:
+            with open(i) as f:
+                query = f.read()
+            print(f"Creating delta-lag {i}", datetime.now())
+            con.sql(
+                f"""
+                    CREATE OR REPLACE TABLE competencia_03 AS (
+                        {query}
+                    );
+                    """
+            )
 
     con.sql(
         """
@@ -109,6 +111,9 @@ def transform(con: duckdb.DuckDBPyConnection) -> None:
 
 
 def preprocess_training(con: duckdb.DuckDBPyConnection) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    in_clause_training = ", ".join([str(i) for i in TRAINING_MONTHS])
+    in_clause_validation = ", ".join([str(i) for i in VALIDATION_MONTHS])
+    in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
     in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + VALIDATION_MONTHS + TEST_MONTH])
 
     print("Creating binaria", datetime.now())
@@ -143,16 +148,11 @@ def preprocess_training(con: duckdb.DuckDBPyConnection) -> Tuple[pd.DataFrame, p
             """
     )
 
+    df_train = con.sql(f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_training})").to_df()
+    df_valid = con.sql(f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_validation})").to_df()
+    df_test = con.sql(f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})").to_df()
 
-# df_train = con.sql("SELECT * FROM competencia_03_training").to_df()
-# df_valid = con.sql("SELECT * FROM competencia_03_validation").to_df()
-# df_test = con.sql("SELECT * FROM competencia_03_test").to_df()
-
-# df_train.to_csv("datasets/interim/training.csv", index=False)
-# df_valid.to_csv("datasets/interim/validation.csv", index=False)
-# df_test.to_csv("datasets/interim/test.csv", index=False)
-
-# return df_train, df_valid, df_test
+    return df_train, df_valid, df_test
 
 
 def generate_small_dataset(con: duckdb.DuckDBPyConnection) -> None:

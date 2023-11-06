@@ -2,11 +2,8 @@ from datetime import datetime
 
 import duckdb
 
-# from src.model.training import training_loop
+from src.model.training import training_loop
 from src.preprocess.etl import extract, preprocess_training, transform
-
-# from src.constants import DATABASE_PATH
-
 
 if __name__ == "__main__":
     con = duckdb.connect(database=":memory:", read_only=False)
@@ -15,7 +12,8 @@ if __name__ == "__main__":
     print("Transform", datetime.now())
     transform(con)
 
-    print("Preprocess", datetime.now())
-    preprocess_training(con)
+    print("Preprocess - Training", datetime.now())
+    df_train, df_valid, df_test = preprocess_training(con)
 
-    # training_loop(df_train, df_valid)
+    print("Training", datetime.now())
+    training_loop(df_train, df_valid)

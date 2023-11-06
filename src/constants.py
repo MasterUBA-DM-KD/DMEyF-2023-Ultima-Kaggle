@@ -36,8 +36,8 @@ PATH_CRUDO = "~/buckets/b1/datasets/raw/competencia_03_crudo.parquet"
 PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"
 PATH_CLASE_BINARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_binaria.parquet"
 
-PATH_SMALL = "datasets/raw/competencia_03_small.parquet"
-PATH_CLASE_TERNARIA_CSV_SMALL = "datasets/processed/competencia_03_clase_ternaria_small.csv"
+PATH_SMALL = "~/buckets/b1/datasets/raw/competencia_03_small.parquet"
+PATH_CLASE_TERNARIA_CSV_SMALL = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria_small.csv"
 
 LAG_FILES = [
     "sql/lags_1.sql",
@@ -52,3 +52,4 @@ DELTA_FILES = [
 ]
 
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}
+SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217, 222221, 222223, 222227, 222229]
