@@ -33,7 +33,8 @@ TEST_MONTH = [202109]
 DATABASE_PATH = "~/buckets/b1/database/competencia_03.duckdb"
 
 PATH_CRUDO = "~/buckets/b1/datasets/raw/competencia_03_crudo.parquet"
-PATH_CLASE_TERNARIA = "datasets/processed/competencia_03_clase_ternaria.parquet"
+PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"
+PATH_CLASE_BINARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_binaria.parquet"
 
 PATH_SMALL = "datasets/raw/competencia_03_small.parquet"
 PATH_CLASE_TERNARIA_CSV_SMALL = "datasets/processed/competencia_03_clase_ternaria_small.csv"
