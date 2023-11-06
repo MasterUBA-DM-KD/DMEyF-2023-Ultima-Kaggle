@@ -1,3 +1,5 @@
+RUN_ETL = False
+
 RANDOM_STATE = 42
 
 TRAINING_MONTHS = [

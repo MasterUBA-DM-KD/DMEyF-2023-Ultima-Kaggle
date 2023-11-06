@@ -1,3 +1,4 @@
+import logging
 import os
 
 import lightgbm as lgb
@@ -10,6 +11,8 @@ from optuna.samplers import TPESampler
 from sklearn.metrics import f1_score
 
 from src.constants import EVALUATOR_CONFIG, RANDOM_STATE
+
+logger = logging.getLogger(__name__)
 
 mlflc = MLflowCallback(
     tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
@@ -25,7 +28,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
     param = {
         "objective": "binary",
         "metric": "auc",
-        "verbosity": -1,
+        "verbosity": 1,
         "boosting_type": "gbdt",
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
@@ -55,6 +58,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
 
 
 def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
+    logger.info("Starting training loop")
     mlflow.lightgbm.autolog()
 
     X_train = df_train.drop(columns=["clase_binaria"], axis=1)
@@ -68,12 +72,16 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
 
     sampler = TPESampler(seed=RANDOM_STATE)
 
+    logger.info("MLFlow Run - Started")
     with mlflow.start_run():
         study = optuna.create_study(
-            pruner=optuna.pruners.MedianPruner(n_warmup_steps=1), direction="maximize", sampler=sampler
+            pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
         )
         study.optimize(
-            lambda trial: objective(trial, dtrain, dvalid, X_test.values, y_test.values), n_trials=1, callbacks=[mlflc]
+            lambda trial: objective(trial, dtrain, dvalid, X_test.values, y_test.values),
+            n_trials=10,
+            n_jobs=-1,
+            callbacks=[mlflc],
         )
 
         model = lgb.LGBMClassifier(**study.best_params)
@@ -89,6 +97,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
         eval_data = X_test.copy()
         eval_data["target"] = y_test.copy()
 
+        logger.info("MLFlow evaluation - Started")
         mlflow.evaluate(
             model_info.model_uri,
             data=eval_data,
@@ -97,3 +106,5 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
             evaluators="default",
             evaluator_config=EVALUATOR_CONFIG,
         )
+        logger.info("MLFlow evaluation - Finished")
+    logger.info("MLFlow Run - Finished")

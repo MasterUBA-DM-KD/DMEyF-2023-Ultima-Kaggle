@@ -1,4 +1,4 @@
-from datetime import datetime
+import logging
 from typing import Tuple
 
 import duckdb
@@ -9,28 +9,30 @@ from src.constants import (
     LAG_FILES,
     PATH_CLASE_BINARIA,
     PATH_CLASE_TERNARIA,
-    PATH_CRUDO,
     TEST_MONTH,
     TRAINING_MONTHS,
     VALIDATION_MONTHS,
 )
 
+logger = logging.getLogger(__name__)
 
-def extract(con: duckdb.DuckDBPyConnection, replace: bool = False) -> None:
-    if replace:
-        con.sql("DROP TABLE IF EXISTS competencia_03;")
+
+def extract(con: duckdb.DuckDBPyConnection, path_parquet: str) -> None:
+    logger.info("Extracting from %s", path_parquet)
     con.sql(
         f"""
         CREATE OR REPLACE TABLE competencia_03 AS (
             SELECT
                 *
-            FROM read_parquet('{PATH_CRUDO}')
+            FROM read_parquet('{path_parquet}')
         );
         """
     )
 
 
 def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: bool = False) -> None:
+    in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + VALIDATION_MONTHS + TEST_MONTH])
+    logger.info("Creating ranks")
     con.sql(
         """
             CREATE OR REPLACE TABLE competencia_03 AS (
@@ -52,7 +54,7 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
             );
             """
     )
-    print("Creating ternaria", datetime.now())
+    logger.info("Creating ternaria")
     con.sql(
         """
         CREATE OR REPLACE TABLE competencia_03 AS (
@@ -68,7 +70,7 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
         """
     )
 
-    print("Dropping ranks", datetime.now())
+    logger.info("Drop ternaria")
     con.sql(
         """
         ALTER TABLE competencia_03 DROP COLUMN rank_foto_mes;
@@ -77,11 +79,11 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
     )
 
     if lags:
-        print("Creating lags", datetime.now())
+        logger.info("Creating lags")
         for i in LAG_FILES:
             with open(i) as f:
                 query = f.read()
-            print(f"Creating lag {i}", datetime.now())
+            logger.info("Creating lag %s", i)
             con.sql(
                 f"""
                     CREATE OR REPLACE TABLE competencia_03 AS (
@@ -90,11 +92,11 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
                 """
             )
     if delta_lags:
-        print("Creating delta lags", datetime.now())
+        logger.info("Creating delta-lags")
         for i in DELTA_FILES:
             with open(i) as f:
                 query = f.read()
-            print(f"Creating delta-lag {i}", datetime.now())
+            logger.info("Creating deta-lag %s", i)
             con.sql(
                 f"""
                     CREATE OR REPLACE TABLE competencia_03 AS (
@@ -103,7 +105,7 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
                     """
             )
 
-    print("Export terciaria", datetime.now())
+    logger.info("Export terciaria %s", PATH_CLASE_TERNARIA)
     con.sql(
         f"""
         COPY competencia_03
@@ -111,46 +113,44 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
         """
     )
 
-
-def preprocess_training(con: duckdb.DuckDBPyConnection) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    in_clause_training = ", ".join([str(i) for i in TRAINING_MONTHS])
-    in_clause_validation = ", ".join([str(i) for i in VALIDATION_MONTHS])
-    in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
-    in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + VALIDATION_MONTHS + TEST_MONTH])
-
-    print("Creating binaria", datetime.now())
+    logger.info("Create binaria")
     con.sql(
         f"""
-        CREATE OR REPLACE TABLE competencia_03 AS (
-            SELECT
-                *,
-                CASE
-                    WHEN clase_ternaria = 'BAJA+2' THEN 1
-                    WHEN clase_ternaria ='BAJA+1' THEN 0
-                    WHEN clase_ternaria = 'CONTINUA' THEN 0
-                    ELSE 0
-                END AS clase_binaria
-            FROM competencia_03
-            WHERE foto_mes IN ({in_clause_all})
-        );
-        """
+            CREATE OR REPLACE TABLE competencia_03 AS (
+                SELECT
+                    *,
+                    CASE
+                        WHEN clase_ternaria = 'BAJA+2' THEN 1
+                        WHEN clase_ternaria ='BAJA+1' THEN 0
+                        WHEN clase_ternaria = 'CONTINUA' THEN 0
+                        ELSE 0
+                    END AS clase_binaria
+                FROM competencia_03
+                WHERE foto_mes IN ({in_clause_all})
+            );
+            """
     )
 
-    print("Dropping ternaria", datetime.now())
     con.sql(
         """
         ALTER TABLE competencia_03 DROP COLUMN clase_ternaria;
         """
     )
-
-    print("Export binaria", datetime.now())
+    logger.info("Export binaria %s", PATH_CLASE_BINARIA)
     con.sql(
         f"""
-            COPY competencia_03
-            TO '{PATH_CLASE_BINARIA}' (FORMAT PARQUET);
-            """
+                COPY competencia_03
+                TO '{PATH_CLASE_BINARIA}' (FORMAT PARQUET);
+                """
     )
 
+
+def preprocess_training(con: duckdb.DuckDBPyConnection) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    in_clause_training = ", ".join([str(i) for i in TRAINING_MONTHS])
+    in_clause_validation = ", ".join([str(i) for i in VALIDATION_MONTHS])
+    in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
+
+    logger.info("Querying - Train, Validation, Test dataframes")
     df_train = con.sql(f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_training})").to_df()
     df_valid = con.sql(f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_validation})").to_df()
     df_test = con.sql(f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})").to_df()
