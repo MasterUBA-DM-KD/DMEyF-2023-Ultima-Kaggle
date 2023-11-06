@@ -5,15 +5,14 @@
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+pip install -r DMEyF-2023-Ultima-Kaggle/requirements.txt
 ```
 
 Create a symbolic link to the database folder in GCP (gcsfuse might be active):
 
 ```bash
-ln -s /buckets/b1/database database
+ln -sf ~/buckets/b1/database/ DMEyF-2023-Ultima-Kaggle/
 ```
-
 
 ## MLFlow
 
@@ -21,7 +20,7 @@ Set environment variables:
 
 ```bash
 export MLFLOW_ARTIFACT_ROOT=gs://mlflow-artifacts-uribe/mlruns
-export MLFLOW_TRACKING_URI=sqlitdatabase/mlruns.db
+export MLFLOW_TRACKING_URI=sqlite:///database/mlruns.db
 ```
 
 Start MLFlow server:
