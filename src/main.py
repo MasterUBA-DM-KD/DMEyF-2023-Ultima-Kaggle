@@ -7,12 +7,13 @@ from src.constants import PATH_CLASE_BINARIA, PATH_CRUDO, RUN_ETL
 from src.model.training import training_loop
 from src.preprocess.etl import extract, preprocess_training, transform
 
-logging.config.fileConfig(fname="~/buckets/b1/logs/run.log", disable_existing_loggers=False)
+logging.basicConfig(format="%(level)s %(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     logger.info("Connecting to in-memory database")
     con = duckdb.connect(database=":memory:", read_only=False)
+
     if RUN_ETL:
         logger.warning("Running the whole ETL")
 

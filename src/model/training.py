@@ -80,7 +80,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
         study.optimize(
             lambda trial: objective(trial, dtrain, dvalid, X_test.values, y_test.values),
             n_trials=10,
-            n_jobs=-1,
+            n_jobs=2,
             callbacks=[mlflc],
         )
 
