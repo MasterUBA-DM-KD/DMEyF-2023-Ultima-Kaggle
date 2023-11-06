@@ -32,7 +32,7 @@ TRAINING_MONTHS = [
 VALIDATION_MONTHS = [202108]
 TEST_MONTH = [202109]
 
-DATABASE_PATH = "~/buckets/b1/database/competencia_03.duckdb"
+DATABASE_PATH = "database/competencia_03.duckdb"
 
 PATH_CRUDO = "~/buckets/b1/datasets/raw/competencia_03_crudo.parquet"
 PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"

@@ -3,7 +3,7 @@ import logging.config
 
 import duckdb
 
-from src.constants import PATH_CLASE_BINARIA, PATH_CRUDO, RUN_ETL
+from src.constants import DATABASE_PATH, PATH_CRUDO, RUN_ETL
 from src.model.training import training_loop
 from src.preprocess.etl import extract, preprocess_training, transform
 
@@ -13,7 +13,7 @@ logger.setLevel(logging.INFO)
 
 if __name__ == "__main__":
     logger.info("Connecting to in-memory database")
-    con = duckdb.connect(database=":memory:", read_only=False)
+    con = duckdb.connect(database=DATABASE_PATH, read_only=False)
 
     if RUN_ETL:
         logger.warning("Running the whole ETL")
@@ -26,11 +26,7 @@ if __name__ == "__main__":
         transform(con)
         logger.info("Transform - Finished")
     else:
-        logger.warning("Reading from %s - Transform will be skipped", PATH_CLASE_BINARIA)
-
-        logger.info("Extract - Started")
-        extract(con, PATH_CLASE_BINARIA)
-        logger.info("Extract - Finished")
+        logger.warning("Reading from %s - Transform will be skipped", DATABASE_PATH)
 
     logger.info("Preprocess for training - Started")
     df_train, df_valid, df_test = preprocess_training(con)

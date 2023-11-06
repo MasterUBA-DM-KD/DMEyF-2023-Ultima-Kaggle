@@ -25,7 +25,7 @@ mlflc = MLflowCallback(
 )
 
 
-def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test, y_test):
+def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test, y_test, X_train, y_train):
     param = {
         "objective": "binary",
         "metric": "auc",
@@ -81,21 +81,25 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
             pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
         )
         study.optimize(
-            lambda trial: objective(trial, dtrain, dvalid, X_test.values, y_test.values),
+            lambda trial: objective(
+                trial, dtrain, dvalid, X_test.values, y_test.values, X_train.values, y_train.values
+            ),
             n_trials=10,
-            n_jobs=2,
+            n_jobs=3,
             callbacks=[mlflc],
+            gc_after_trial=True,
+            show_progress_bar=True,
         )
 
-        model = lgb.LGBMClassifier(**study.best_params)
-        model.fit(X_train, y_train)
+        best_trial = study.best_trial
+        best_model = best_trial.user_attrs["model"]
 
-        preds = model.predict(X_test)
+        preds = best_model.predict(X_test)
         preds = np.rint(preds)
         f_score = f1_score(y_test, preds)
         mlflow.log_metric("f-score", f_score)
 
-        model_info = mlflow.lightgbm.log_model(model, "model")
+        model_info = mlflow.lightgbm.log_model(best_model, "model")
 
         eval_data = X_test.copy()
         eval_data["target"] = y_test.copy()
