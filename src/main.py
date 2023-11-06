@@ -7,8 +7,9 @@ from src.constants import PATH_CLASE_BINARIA, PATH_CRUDO, RUN_ETL
 from src.model.training import training_loop
 from src.preprocess.etl import extract, preprocess_training, transform
 
-logging.basicConfig(format="%(level)s %(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
+logging.basicConfig(format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 if __name__ == "__main__":
     logger.info("Connecting to in-memory database")
