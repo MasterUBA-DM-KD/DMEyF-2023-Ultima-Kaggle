@@ -8,9 +8,8 @@ import pandas as pd
 from optuna.integration import MLflowCallback
 from optuna.samplers import TPESampler
 from sklearn.metrics import f1_score
-from sklearn.model_selection import train_test_split
 
-from src.constants import RANDOM_STATE
+from src.constants import EVALUATOR_CONFIG, RANDOM_STATE
 
 mlflc = MLflowCallback(
     tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
@@ -55,36 +54,46 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
     return f_score
 
 
-def preprocess():
-    df = pd.read_parquet("data/processed/competencia_03.parquet")
-    X = df.copy().drop(columns=["clase_ternaria"], axis=1)
-    y = df["clase_ternaria"].copy()
-
-    return X, y
-
-
-def training_loop(X, y):
+def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
     mlflow.lightgbm.autolog()
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=RANDOM_STATE)
-    dtrain = lgb.Dataset(X_train.values, label=y_train)
-    dvalid = lgb.Dataset(X_test.values, label=y_test, reference=dtrain)
+    X_train = df_train.drop(columns=["clase_binaria"], axis=1)
+    y_train = df_train["clase_binaria"]
+
+    X_test = df_valid.drop(columns=["clase_binaria"], axis=1)
+    y_test = df_valid["clase_binaria"]
+
+    dtrain = lgb.Dataset(X_train, label=y_train)
+    dvalid = lgb.Dataset(X_test, label=y_test)
 
     sampler = TPESampler(seed=RANDOM_STATE)
 
     with mlflow.start_run():
         study = optuna.create_study(
-            pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
+            pruner=optuna.pruners.MedianPruner(n_warmup_steps=1), direction="maximize", sampler=sampler
         )
         study.optimize(
-            lambda trial: objective(trial, dtrain, dvalid, X_test.values, y_test.values), n_trials=10, callbacks=[mlflc]
+            lambda trial: objective(trial, dtrain, dvalid, X_test.values, y_test.values), n_trials=1, callbacks=[mlflc]
         )
 
-        model = lgb.train(study.best_params, dtrain, valid_sets=[dtrain, dvalid], valid_names=["train", "valid"])
+        model = lgb.LGBMClassifier(**study.best_params)
+        model.fit(X_train, y_train)
 
-        preds = model.predict(X_test.values)
+        preds = model.predict(X_test)
         preds = np.rint(preds)
         f_score = f1_score(y_test, preds)
         mlflow.log_metric("f-score", f_score)
 
-        mlflow.lightgbm.log_model(model, "model", input_example=X_test.iloc[[0]])
+        model_info = mlflow.lightgbm.log_model(model, "model")
+
+        eval_data = X_test.copy()
+        eval_data["target"] = y_test.copy()
+
+        mlflow.evaluate(
+            model_info.model_uri,
+            data=eval_data,
+            targets="target",
+            model_type="classifier",
+            evaluators="default",
+            evaluator_config=EVALUATOR_CONFIG,
+        )
