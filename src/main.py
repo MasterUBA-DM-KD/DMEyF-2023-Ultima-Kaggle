@@ -5,6 +5,9 @@ import duckdb
 # from src.model.training import training_loop
 from src.preprocess.etl import extract, preprocess_training, transform
 
+# from src.constants import DATABASE_PATH
+
+
 if __name__ == "__main__":
     con = duckdb.connect(database=":memory:", read_only=False)
     print("Extract", datetime.now())
