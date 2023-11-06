@@ -74,7 +74,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
     TRAIN_WEIGHTS = (
         pd.DataFrame(y_train.rename("old_target"))
         .merge(WEIGHTS, how="left", left_on="old_target", right_on=WEIGHTS.index)
-        .target.values
+        .clase_ternaria.values
     )
 
     X_test = df_valid.drop(columns=["clase_binaria"], axis=1)
