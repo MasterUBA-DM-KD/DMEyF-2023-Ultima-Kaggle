@@ -15,5 +15,7 @@ if __name__ == "__main__":
     print("Preprocess - Training", datetime.now())
     df_train, df_valid, df_test = preprocess_training(con)
 
+    con.close()
+
     print("Training", datetime.now())
     training_loop(df_train, df_valid)

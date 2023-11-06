@@ -67,6 +67,15 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
         );
         """
     )
+
+    print("Dropping ranks", datetime.now())
+    con.sql(
+        """
+        ALTER TABLE competencia_03 DROP COLUMN rank_foto_mes;
+        ALTER TABLE competencia_03 DROP COLUMN rank_foto_mes_2;
+        """
+    )
+
     if lags:
         print("Creating lags", datetime.now())
         for i in LAG_FILES:
@@ -93,13 +102,6 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
                     );
                     """
             )
-
-    con.sql(
-        """
-        ALTER TABLE competencia_03 DROP COLUMN rank_foto_mes;
-        ALTER TABLE competencia_03 DROP COLUMN rank_foto_mes_2;
-        """
-    )
 
     print("Export terciaria", datetime.now())
     con.sql(
@@ -134,6 +136,7 @@ def preprocess_training(con: duckdb.DuckDBPyConnection) -> Tuple[pd.DataFrame, p
         """
     )
 
+    print("Dropping ternaria", datetime.now())
     con.sql(
         """
         ALTER TABLE competencia_03 DROP COLUMN clase_ternaria;
