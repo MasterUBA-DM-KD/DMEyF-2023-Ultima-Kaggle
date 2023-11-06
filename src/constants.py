@@ -1,4 +1,4 @@
-RUN_ETL = False
+RUN_ETL = True
 
 RANDOM_STATE = 42
 
