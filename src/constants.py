@@ -1,4 +1,4 @@
-RUN_ETL = False
+RUN_ETL = True
 
 RANDOM_STATE = 42
 
@@ -27,9 +27,8 @@ TRAINING_MONTHS = [
     202104,
     202105,
     202106,
-    202107,
 ]
-VALIDATION_MONTHS = [202108]
+VALIDATION_MONTHS = [202107, 202108]
 TEST_MONTH = [202109]
 
 DATABASE_PATH = "database/competencia_03.duckdb"

@@ -33,13 +33,17 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
         "boosting_type": "gbdt",
         "feature_pre_filter": False,
         "force_col_wise": True,
-        "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
-        "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
-        "num_leaves": trial.suggest_int("num_leaves", 2, 256),
-        "feature_fraction": trial.suggest_float("feature_fraction", 0.4, 1.0),
-        "bagging_fraction": trial.suggest_float("bagging_fraction", 0.4, 1.0),
-        "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
-        "min_child_samples": trial.suggest_int("min_child_samples", 5, 100),
+        "learning_rate": trial.suggest_float("learning_rate", 0.1, 0.3),
+        "num_leaves": trial.suggest_int("num_leaves", 20, 3000, step=20),
+        "max_depth": trial.suggest_int("max_depth", 3, 12),
+        "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 200, 10000, step=100),
+        "max_bin": trial.suggest_int("max_bin", 200, 300),
+        "lambda_l1": trial.suggest_int("lambda_l1", 0, 100, step=5),
+        "lambda_l2": trial.suggest_int("lambda_l2", 0, 100, step=5),
+        "min_gain_to_split": trial.suggest_float("min_gain_to_split", 0, 15),
+        "bagging_fraction": trial.suggest_float("bagging_fraction", 0.2, 0.95, step=0.1),
+        "bagging_freq": trial.suggest_categorical("bagging_freq", [1]),
+        "feature_fraction": trial.suggest_float("feature_fraction", 0.2, 0.95, step=0.1),
     }
 
     gbm = lgb.train(
@@ -66,12 +70,18 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
 
     X_train = df_train.drop(columns=["clase_binaria"], axis=1)
     y_train = df_train["clase_binaria"]
+    WEIGHTS = y_train.value_counts(normalize=True).min() / y_train.value_counts(normalize=True)
+    TRAIN_WEIGHTS = (
+        pd.DataFrame(y_train.rename("old_target"))
+        .merge(WEIGHTS, how="left", left_on="old_target", right_on=WEIGHTS.index)
+        .target.values
+    )
 
     X_test = df_valid.drop(columns=["clase_binaria"], axis=1)
     y_test = df_valid["clase_binaria"]
 
-    dtrain = lgb.Dataset(X_train, label=y_train)
-    dvalid = lgb.Dataset(X_test, label=y_test)
+    dtrain = lgb.Dataset(X_train, label=y_train, weight=TRAIN_WEIGHTS)
+    dvalid = lgb.Dataset(X_test, label=y_test, reference=dtrain)
 
     sampler = TPESampler(seed=RANDOM_STATE)
 
@@ -85,14 +95,13 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
                 trial, dtrain, dvalid, X_test.values, y_test.values, X_train.values, y_train.values
             ),
             n_trials=10,
-            n_jobs=3,
+            n_jobs=2,
             callbacks=[mlflc],
             gc_after_trial=True,
-            show_progress_bar=True,
         )
 
-        best_trial = study.best_trial
-        best_model = best_trial.user_attrs["model"]
+        best_model = lgb.LGBMClassifier(**study.best_params, random_state=RANDOM_STATE)
+        best_model = best_model.fit(X_train, y_train, eval_set=[(X_test, y_test)])
 
         preds = best_model.predict(X_test)
         preds = np.rint(preds)
@@ -115,3 +124,5 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
         )
         logger.info("MLFlow evaluation - Finished")
     logger.info("MLFlow Run - Finished")
+
+    return best_model
