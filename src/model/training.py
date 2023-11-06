@@ -3,6 +3,7 @@ import os
 from typing import Tuple
 
 import lightgbm as lgb
+import matplotlib.pyplot as plt
 import mlflow.lightgbm
 import numpy as np
 import optuna
@@ -10,9 +11,9 @@ import pandas as pd
 from lightgbm import LGBMClassifier
 from optuna.integration import MLflowCallback
 from optuna.samplers import TPESampler
-from sklearn.metrics import f1_score
+from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix, f1_score
 
-from src.constants import EVALUATOR_CONFIG, RANDOM_STATE
+from src.constants import RANDOM_STATE
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -72,18 +73,18 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
 
     X_train = df_train.drop(columns=["clase_binaria"], axis=1)
     y_train = df_train["clase_binaria"]
-    WEIGHTS = y_train.value_counts(normalize=True).min() / y_train.value_counts(normalize=True)
-    TRAIN_WEIGHTS = (
+    weights = y_train.value_counts(normalize=True).min() / y_train.value_counts(normalize=True)
+    train_weights = (
         pd.DataFrame(y_train.rename("old_target"))
-        .merge(WEIGHTS, how="left", left_on="old_target", right_on=WEIGHTS.index)
+        .merge(weights, how="left", left_on="old_target", right_on=weights.index)
         .values
     )
 
-    X_test = df_valid.drop(columns=["clase_binaria"], axis=1)
-    y_test = df_valid["clase_binaria"]
+    X_valid = df_valid.drop(columns=["clase_binaria"], axis=1)
+    y_valid = df_valid["clase_binaria"]
 
-    dtrain = lgb.Dataset(X_train, label=y_train, weight=TRAIN_WEIGHTS[:, 1])
-    dvalid = lgb.Dataset(X_test, label=y_test, reference=dtrain)
+    dataset_train = lgb.Dataset(X_train, label=y_train, weight=train_weights[:, 1])
+    dataset_valid = lgb.Dataset(X_valid, label=y_valid, reference=dataset_train)
 
     sampler = TPESampler(seed=RANDOM_STATE)
 
@@ -94,7 +95,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
             pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
         )
         study.optimize(
-            lambda trial: objective(trial, dtrain, dvalid, X_test.values, y_test.values),
+            lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
             n_trials=10,
             n_jobs=2,
             callbacks=[mlflc],
@@ -102,28 +103,30 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
         )
 
         best_model = lgb.LGBMClassifier(**study.best_params, random_state=RANDOM_STATE)
-        best_model = best_model.fit(X_train, y_train, eval_set=[(X_test, y_test)])
+        best_model = best_model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)])
 
-        preds = best_model.predict(X_test)
+        preds = best_model.predict(X_valid)
         preds = np.rint(preds)
-        f_score = f1_score(y_test, preds)
+        f_score = f1_score(y_valid, preds)
         mlflow.log_metric("f-score", f_score)
 
-        model_info = mlflow.lightgbm.log_model(best_model, "model")
+        input_example = X_valid.iloc[[0]]
+        mlflow.lightgbm.log_model(best_model, "best_model", input_example=input_example)
 
-        eval_data = X_test.copy()
-        eval_data["target"] = y_test.copy()
+        predictions = best_model.predict(X_valid)
+        cm = confusion_matrix(y_valid, predictions, labels=best_model.classes_, normalize="all")
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=best_model.classes_)
+        fig = disp.plot().figure_
+        plt.savefig("train_cm.png")
+        mlflow.log_figure(fig, "train_cm.png")
 
-        logger.info("MLFlow evaluation - Started")
-        mlflow.evaluate(
-            model_info.model_uri,
-            data=eval_data,
-            targets="target",
-            model_type="classifier",
-            evaluators="default",
-            evaluator_config=EVALUATOR_CONFIG,
-        )
-        logger.info("MLFlow evaluation - Finished")
+        predictions = best_model.predict(X_valid)
+        cm = confusion_matrix(y_valid, predictions, labels=best_model.classes_, normalize="all")
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=best_model.classes_)
+        fig = disp.plot().figure_
+        plt.savefig("valid_cm.png")
+        mlflow.log_figure(fig, "valid_cm.png")
+
         logger.info("MLFlow Run %s - Finished", run_name)
 
     return best_model, run_name

@@ -1,5 +1,4 @@
 import logging
-from typing import Tuple
 
 import duckdb
 import pandas as pd
@@ -122,7 +121,7 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
                     *,
                     CASE
                         WHEN clase_ternaria = 'BAJA+2' THEN 1
-                        WHEN clase_ternaria ='BAJA+1' THEN 0
+                        WHEN clase_ternaria ='BAJA+1' THEN 1
                         WHEN clase_ternaria = 'CONTINUA' THEN 0
                         ELSE 0
                     END AS clase_binaria
@@ -146,17 +145,9 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
     )
 
 
-def preprocess_training(con: duckdb.DuckDBPyConnection) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    in_clause_training = ", ".join([str(i) for i in TRAINING_MONTHS])
-    in_clause_validation = ", ".join([str(i) for i in VALIDATION_MONTHS])
-    in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
-
-    logger.info("Querying - Train, Validation, Test dataframes")
-    df_train = con.sql(f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_training})").to_df()
-    df_valid = con.sql(f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_validation})").to_df()
-    df_test = con.sql(f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})").to_df()
-
-    return df_train, df_valid, df_test
+def get_dataframe(con: duckdb.DuckDBPyConnection, query: str) -> pd.DataFrame:
+    logger.info("Querying and converting to dataframe")
+    return con.sql(query).to_df()
 
 
 def generate_small_dataset(con: duckdb.DuckDBPyConnection) -> None:
