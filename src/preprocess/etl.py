@@ -15,6 +15,7 @@ from src.constants import (
 )
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def extract(con: duckdb.DuckDBPyConnection, path_parquet: str) -> None:

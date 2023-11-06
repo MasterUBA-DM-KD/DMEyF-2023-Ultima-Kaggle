@@ -13,6 +13,7 @@ from sklearn.metrics import f1_score
 from src.constants import EVALUATOR_CONFIG, RANDOM_STATE
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 mlflc = MLflowCallback(
     tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
