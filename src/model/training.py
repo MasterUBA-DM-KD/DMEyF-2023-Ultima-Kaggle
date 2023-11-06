@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Tuple
 
 import lightgbm as lgb
 import mlflow.lightgbm
@@ -32,7 +33,6 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
         "objective": "binary",
         "boosting_type": "gbdt",
         "force_col_wise": True,
-        "force_row_wise": True,
         "feature_pre_filter": False,
         "verbosity": 1,
         "learning_rate": trial.suggest_float("lr", 1e-5, 1.5, log=True),
@@ -66,7 +66,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
     return f_score
 
 
-def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> LGBMClassifier:
+def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMClassifier, str]:
     logger.info("Starting training loop")
     mlflow.lightgbm.autolog()
 
@@ -87,9 +87,9 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> LGBMClassif
 
     sampler = TPESampler(seed=RANDOM_STATE)
 
-    logger.info("MLFlow Run - Started")
-    with mlflow.start_run():
+    with mlflow.start_run() as _:
         run_name = mlflow.active_run().info.run_name
+        logger.info("MLFlow Run %s - Started", run_name)
         study = optuna.create_study(
             pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
         )
@@ -124,6 +124,6 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> LGBMClassif
             evaluator_config=EVALUATOR_CONFIG,
         )
         logger.info("MLFlow evaluation - Finished")
-    logger.info("MLFlow Run - Finished")
+        logger.info("MLFlow Run %s - Finished", run_name)
 
     return best_model, run_name
