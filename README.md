@@ -1,5 +1,20 @@
 # DM EyF - Última competencia Kaggle
 
+## Setup
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Create a symbolic link to the database folder in GCP (gcsfuse might be active):
+
+```bash
+ln -s /buckets/b1/database database
+```
+
+
 ## MLFlow
 
 Set environment variables:

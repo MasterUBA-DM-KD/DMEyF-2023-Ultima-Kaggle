@@ -32,6 +32,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
         "verbosity": 1,
         "boosting_type": "gbdt",
         "feature_pre_filter": False,
+        "force_col_wise": True,
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
         "num_leaves": trial.suggest_int("num_leaves", 2, 256),
@@ -82,7 +83,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
         study.optimize(
             lambda trial: objective(trial, dtrain, dvalid, X_test.values, y_test.values),
             n_trials=10,
-            n_jobs=3,
+            n_jobs=2,
             callbacks=[mlflc],
         )
 
