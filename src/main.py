@@ -40,5 +40,9 @@ if __name__ == "__main__":
     con.close()
 
     logger.info("Training - started")
-    training_loop(df_train, df_valid)
+    model, run_name = training_loop(df_train, df_valid)
     logger.info("Training - Finished")
+
+    # logger.info("Inference - started")
+    # preds_per_seed(df_test, model)
+    # logger.info("Inference - Finished")

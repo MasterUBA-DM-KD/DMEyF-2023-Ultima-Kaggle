@@ -6,6 +6,7 @@ import mlflow.lightgbm
 import numpy as np
 import optuna
 import pandas as pd
+from lightgbm import LGBMClassifier
 from optuna.integration import MLflowCallback
 from optuna.samplers import TPESampler
 from sklearn.metrics import f1_score
@@ -25,24 +26,26 @@ mlflc = MLflowCallback(
 )
 
 
-def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test, y_test, X_train, y_train):
+def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test, y_test):
     param = {
-        "objective": "binary",
         "metric": "auc",
-        "verbosity": 1,
+        "objective": "binary",
         "boosting_type": "gbdt",
-        "feature_pre_filter": False,
         "force_col_wise": True,
-        "learning_rate": trial.suggest_float("learning_rate", 0.1, 0.3),
-        "num_leaves": trial.suggest_int("num_leaves", 20, 3000, step=20),
+        "force_row_wise": True,
+        "feature_pre_filter": False,
+        "verbosity": 1,
+        "learning_rate": trial.suggest_float("lr", 1e-5, 1.5, log=True),
+        "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
+        "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
+        "num_leaves": trial.suggest_int("num_leaves", 2, 256),
         "max_depth": trial.suggest_int("max_depth", 3, 12),
         "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 200, 10000, step=100),
-        "lambda_l1": trial.suggest_int("lambda_l1", 0, 100, step=5),
-        "lambda_l2": trial.suggest_int("lambda_l2", 0, 100, step=5),
         "min_gain_to_split": trial.suggest_float("min_gain_to_split", 0, 15),
-        "bagging_fraction": trial.suggest_float("bagging_fraction", 0.2, 0.95, step=0.1),
-        "bagging_freq": trial.suggest_categorical("bagging_freq", [1]),
-        "feature_fraction": trial.suggest_float("feature_fraction", 0.2, 0.95, step=0.1),
+        "min_child_samples": trial.suggest_int("min_child_samples", 5, 100),
+        "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
+        "bagging_fraction": trial.suggest_float("bagging_fraction", 0.1, 0.9, step=0.1),
+        "feature_fraction": trial.suggest_float("feature_fraction", 0.1, 0.9, step=0.1),
     }
 
     gbm = lgb.train(
@@ -63,7 +66,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
     return f_score
 
 
-def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
+def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> LGBMClassifier:
     logger.info("Starting training loop")
     mlflow.lightgbm.autolog()
 
@@ -86,13 +89,12 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
 
     logger.info("MLFlow Run - Started")
     with mlflow.start_run():
+        run_name = mlflow.active_run().info.run_name
         study = optuna.create_study(
             pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
         )
         study.optimize(
-            lambda trial: objective(
-                trial, dtrain, dvalid, X_test.values, y_test.values, X_train.values, y_train.values
-            ),
+            lambda trial: objective(trial, dtrain, dvalid, X_test.values, y_test.values),
             n_trials=10,
             n_jobs=2,
             callbacks=[mlflc],
@@ -124,4 +126,4 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> float:
         logger.info("MLFlow evaluation - Finished")
     logger.info("MLFlow Run - Finished")
 
-    return best_model
+    return best_model, run_name
