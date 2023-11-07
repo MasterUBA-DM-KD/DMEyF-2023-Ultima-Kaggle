@@ -34,6 +34,8 @@ mlflc = MLflowCallback(
     },
 )
 
+early_stopper = lgb.early_stopping(stopping_rounds=25, verbose=True)
+
 
 def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test, y_test):
     param = {
@@ -64,7 +66,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
         valid_names=["train", "valid"],
         callbacks=[
             optuna.integration.LightGBMPruningCallback(trial, "auc", "valid"),
-            lgb.early_stopping(stopping_rounds=5, verbose=True),
+            early_stopper,
         ],
     )
 
@@ -104,15 +106,18 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
         )
         study.optimize(
             lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
-            n_trials=1,
+            n_trials=100,
             n_jobs=2,
             callbacks=[mlflc],
             gc_after_trial=True,
         )
 
         logger.info("Best trial - Retrain")
+        best_params = study.best_params
+        best_params["learning_rate"] = best_params.pop("lr")
+
         best_model = lgb.LGBMClassifier(**study.best_params, random_state=RANDOM_STATE, n_jobs=-1)
-        best_model = best_model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)])
+        best_model = best_model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], callbacks=[early_stopper])
 
         preds = best_model.predict(X_valid)
         preds = np.rint(preds)
