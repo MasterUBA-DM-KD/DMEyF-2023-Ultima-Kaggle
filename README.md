@@ -2,6 +2,12 @@
 
 ## Setup
 
+Clone the repository:
+
+```bash
+git clone git@github.com:UribeAlejandro/DMEyF-2023-Ultima-Kaggle.git
+```
+
 Install dependencies:
 
 ```bash
@@ -33,4 +39,12 @@ Start MLFlow UI:
 
 ```bash
 mlflow ui --backend-store-uri $MLFLOW_TRACKING_URI --default-artifact-root $MLFLOW_ARTIFACT_ROOT --host 0.0.0.0 --port 5000
+```
+
+### Run ETL - Training
+
+The current pipeline requires a `N1` machine in `GCP`, at least 256GB of RAM and 16 vCPUs. Change any constant in `src/constants.py` if needed. The following command will start the pipeline:
+
+```bash
+python -m src.main
 ```
