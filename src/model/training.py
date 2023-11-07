@@ -20,7 +20,7 @@ from sklearn.metrics import (
     recall_score,
 )
 
-from src.constants import EVALUATOR_CONFIG, RANDOM_STATE
+from src.constants import EARLY_STOPPING_ROUNDS, EVALUATOR_CONFIG, N_TRIALS_OPTIMIZE, PRUNER_WARMUP_STEPS, RANDOM_STATE
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -34,7 +34,12 @@ mlflc = MLflowCallback(
     },
 )
 
-early_stopper = lgb.early_stopping(stopping_rounds=25, verbose=True)
+early_stopper = lgb.early_stopping(stopping_rounds=EARLY_STOPPING_ROUNDS, verbose=True)
+
+storage = optuna.storages.RDBStorage(
+    url="sqlite:///database/optuna.db",
+    engine_kwargs={"connect_args": {"timeout": 120}},
+)
 
 
 def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test, y_test):
@@ -97,16 +102,15 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
     dataset_valid = lgb.Dataset(X_valid, label=y_valid, reference=dataset_train)
 
     sampler = TPESampler(seed=RANDOM_STATE)
+    pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
 
     with mlflow.start_run() as _:
         run_name = mlflow.active_run().info.run_name
         logger.info("MLFlow Run %s - Started", run_name)
-        study = optuna.create_study(
-            pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
-        )
+        study = optuna.create_study(storage=storage, pruner=pruner, direction="maximize", sampler=sampler)
         study.optimize(
             lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
-            n_trials=100,
+            n_trials=N_TRIALS_OPTIMIZE,
             n_jobs=2,
             callbacks=[mlflc],
             gc_after_trial=True,

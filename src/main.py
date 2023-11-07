@@ -3,10 +3,9 @@ import logging.config
 
 import duckdb
 
-from src.constants import PATH_CLASE_BINARIA, PATH_CRUDO, RUN_ETL, TRAINING_MONTHS, VALIDATION_MONTHS
+from src.constants import PATH_CLASE_BINARIA, PATH_CRUDO, QUERY_DF_TEST, QUERY_DF_TRAIN, QUERY_DF_VALID, RUN_ETL
+from src.model.inference import predictions_per_seed
 from src.model.training import training_loop
-
-# from src.model.inference import predictions_per_seed
 from src.preprocess.etl import extract, get_dataframe, transform
 
 logging.basicConfig(format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
@@ -35,17 +34,9 @@ if __name__ == "__main__":
         logger.info("Extract - Finished")
 
     logger.info("Preprocess for training - Started")
-    in_clause_training = ", ".join([str(i) for i in TRAINING_MONTHS])
-    query = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_training})"
-    df_train = get_dataframe(con, query)
-
-    in_clause_validation = ", ".join([str(i) for i in VALIDATION_MONTHS])
-    query = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_validation})"
-    df_valid = get_dataframe(con, query)
-
-    # in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
-    # query = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})"
-    # df_test = get_dataframe(con, query)
+    df_train = get_dataframe(con, QUERY_DF_TRAIN)
+    df_valid = get_dataframe(con, QUERY_DF_VALID)
+    df_test = get_dataframe(con, QUERY_DF_TEST)
     logger.info("Preprocess for training - Finished")
 
     logger.info("Closing connection to in-memory database")
@@ -55,6 +46,6 @@ if __name__ == "__main__":
     model, run_name = training_loop(df_train, df_valid)
     logger.info("Training - Finished")
 
-    # logger.info("Inference - started")
-    # predictions_per_seed(df_test, model)
-    # logger.info("Inference - Finished")
+    logger.info("Inference - started")
+    predictions_per_seed(df_train, df_valid, df_test, model, run_name)
+    logger.info("Inference - Finished")
