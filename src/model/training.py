@@ -52,7 +52,6 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
         "max_depth": trial.suggest_int("max_depth", 3, 12),
         "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 200, 10000, step=100),
         "min_gain_to_split": trial.suggest_float("min_gain_to_split", 0, 15),
-        "min_child_samples": trial.suggest_int("min_child_samples", 5, 100),
         "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
         "bagging_fraction": trial.suggest_float("bagging_fraction", 0.1, 0.9, step=0.1),
         "feature_fraction": trial.suggest_float("feature_fraction", 0.1, 0.9, step=0.1),
@@ -100,30 +99,29 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
     with mlflow.start_run() as _:
         run_name = mlflow.active_run().info.run_name
         logger.info("MLFlow Run %s - Started", run_name)
-        study = optuna.create_study(
-            pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
-        )
+        study = optuna.create_study(pruner=optuna.pruners.MedianPruner(), direction="maximize", sampler=sampler)
         study.optimize(
             lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
-            n_trials=10,
+            n_trials=1,
             n_jobs=2,
             callbacks=[mlflc],
+            gc_after_trial=True,
         )
 
-        best_params = study.best_params
-        logger.info("Best params: %s", best_params)
-        best_params["learning_rate"] = best_params.pop("lr")
-        logger.info("Best params: %s", best_params)
-
-        best_model = lgb.LGBMClassifier(**study.best_params, random_state=RANDOM_STATE)
+        logger.info("Best trial - Retrain")
+        best_model = lgb.LGBMClassifier(**study.best_trial.params(), random_state=RANDOM_STATE, n_jobs=-1)
         best_model = best_model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)])
+
+        preds = best_model.predict(X_valid)
+        preds = np.rint(preds)
+        f_score = f1_score(y_valid, preds)
+        mlflow.log_metric("f-score", f_score)
 
         eval_data = X_valid.copy()
         eval_data["target"] = y_valid.copy()
 
         logger.info("Saving model")
-        input_example = X_valid.iloc[[0]]
-        model_info = mlflow.lightgbm.log_model(best_model, "model", input_example=input_example)
+        model_info = mlflow.lightgbm.log_model(best_model, "model")
         mlflow.evaluate(
             model_info.model_uri,
             data=eval_data,
