@@ -20,14 +20,14 @@ from sklearn.metrics import (
     recall_score,
 )
 
-from src.constants import GANANCIA_METRIC, RANDOM_STATE
+from src.constants import EVALUATOR_CONFIG, RANDOM_STATE
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 mlflc = MLflowCallback(
     tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
-    metric_name="ganancia" if GANANCIA_METRIC else "f1_score",
+    metric_name="f1_score",
     create_experiment=False,
     mlflow_kwargs={
         "nested": True,
@@ -44,6 +44,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
         "feature_pre_filter": False,
         "verbosity": 1,
         "seed": RANDOM_STATE,
+        "n_jobs": -1,
         "learning_rate": trial.suggest_float("lr", 1e-5, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
@@ -70,10 +71,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
 
     preds = gbm.predict(X_test)
     preds = np.rint(preds)
-    if GANANCIA_METRIC:
-        metric = 273000 * (preds == 1).sum() - 7000 * ((preds == 0).sum() + (preds == 1).sum())
-    else:
-        metric = f1_score(y_test, preds)
+    metric = f1_score(y_test, preds)
 
     return metric
 
@@ -84,17 +82,17 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
 
     X_train = df_train.drop(columns=["clase_binaria", "foto_mes", "numero_de_cliente"], axis=1)
     y_train = df_train["clase_binaria"]
-    # weights = y_train.value_counts(normalize=True).min() / y_train.value_counts(normalize=True)
-    # train_weights = (
-    #     pd.DataFrame(y_train.rename("old_target"))
-    #     .merge(weights, how="left", left_on="old_target", right_on=weights.index)
-    #     .values
-    # )
+    weights = y_train.value_counts(normalize=True).min() / y_train.value_counts(normalize=True)
+    train_weights = (
+        pd.DataFrame(y_train.rename("old_target"))
+        .merge(weights, how="left", left_on="old_target", right_on=weights.index)
+        .values
+    )
 
     X_valid = df_valid.drop(columns=["clase_binaria", "foto_mes", "numero_de_cliente"], axis=1)
     y_valid = df_valid["clase_binaria"]
 
-    dataset_train = lgb.Dataset(X_train, label=y_train)  # , weight=train_weights[:, 1])
+    dataset_train = lgb.Dataset(X_train, label=y_train, weight=train_weights[:, 1])
     dataset_valid = lgb.Dataset(X_valid, label=y_valid, reference=dataset_train)
 
     sampler = TPESampler(seed=RANDOM_STATE)
@@ -113,14 +111,27 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
         )
 
         best_params = study.best_params
+        logger.info("Best params: %s", best_params)
         best_params["learning_rate"] = best_params.pop("lr")
+        logger.info("Best params: %s", best_params)
 
         best_model = lgb.LGBMClassifier(**study.best_params, random_state=RANDOM_STATE)
         best_model = best_model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)])
 
+        eval_data = X_valid.copy()
+        eval_data["target"] = y_valid.copy()
+
         logger.info("Saving model")
         input_example = X_valid.iloc[[0]]
-        mlflow.lightgbm.log_model(best_model, "model", input_example=input_example)
+        model_info = mlflow.lightgbm.log_model(best_model, "model", input_example=input_example)
+        mlflow.evaluate(
+            model_info.model_uri,
+            data=eval_data,
+            targets="target",
+            model_type="classifier",
+            evaluators="default",
+            evaluator_config=EVALUATOR_CONFIG,
+        )
 
         logger.info("Metrics - Training")
         log_metrics(best_model, X_train, y_train, "training")

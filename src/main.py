@@ -3,15 +3,10 @@ import logging.config
 
 import duckdb
 
-from src.constants import (  # noqa
-    PATH_CLASE_BINARIA,
-    PATH_CRUDO,
-    RUN_ETL,
-    TEST_MONTH,
-    TRAINING_MONTHS,
-    VALIDATION_MONTHS,
-)
+from src.constants import PATH_CLASE_BINARIA, PATH_CRUDO, RUN_ETL, TRAINING_MONTHS, VALIDATION_MONTHS
 from src.model.training import training_loop
+
+# from src.model.inference import predictions_per_seed
 from src.preprocess.etl import extract, get_dataframe, transform
 
 logging.basicConfig(format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
@@ -51,7 +46,7 @@ if __name__ == "__main__":
     # in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
     # query = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})"
     # df_test = get_dataframe(con, query)
-    # logger.info("Preprocess for training - Finished")
+    logger.info("Preprocess for training - Finished")
 
     logger.info("Closing connection to in-memory database")
     con.close()
@@ -61,5 +56,5 @@ if __name__ == "__main__":
     logger.info("Training - Finished")
 
     # logger.info("Inference - started")
-    # preds_per_seed(df_test, model)
+    # predictions_per_seed(df_test, model)
     # logger.info("Inference - Finished")
