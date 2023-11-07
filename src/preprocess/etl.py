@@ -30,8 +30,37 @@ def extract(con: duckdb.DuckDBPyConnection, path_parquet: str) -> None:
     )
 
 
-def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: bool = False) -> None:
-    in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + VALIDATION_MONTHS + TEST_MONTH])
+def create_lags(con: duckdb.DuckDBPyConnection) -> None:
+    logger.info("Creating lags")
+    for i in LAG_FILES:
+        with open(i) as f:
+            query = f.read()
+        logger.info("Creating lag %s", i)
+        con.sql(
+            f"""
+                        CREATE OR REPLACE TABLE competencia_03 AS (
+                            {query}
+                        );
+                    """
+        )
+
+
+def create_delta_lags(con: duckdb.DuckDBPyConnection) -> None:
+    logger.info("Creating delta-lags")
+    for i in DELTA_FILES:
+        with open(i) as f:
+            query = f.read()
+        logger.info("Creating deta-lag %s", i)
+        con.sql(
+            f"""
+                        CREATE OR REPLACE TABLE competencia_03 AS (
+                            {query}
+                        );
+                        """
+        )
+
+
+def create_clase_ternaria(con: duckdb.DuckDBPyConnection) -> None:
     logger.info("Creating ranks")
     con.sql(
         """
@@ -70,7 +99,7 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
         """
     )
 
-    logger.info("Drop ternaria")
+    logger.info("Drop ranks")
     con.sql(
         """
         ALTER TABLE competencia_03 DROP COLUMN rank_foto_mes;
@@ -78,57 +107,33 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
         """
     )
 
-    if lags:
-        logger.info("Creating lags")
-        for i in LAG_FILES:
-            with open(i) as f:
-                query = f.read()
-            logger.info("Creating lag %s", i)
-            con.sql(
-                f"""
-                    CREATE OR REPLACE TABLE competencia_03 AS (
-                        {query}
-                    );
-                """
-            )
-    if delta_lags:
-        logger.info("Creating delta-lags")
-        for i in DELTA_FILES:
-            with open(i) as f:
-                query = f.read()
-            logger.info("Creating deta-lag %s", i)
-            con.sql(
-                f"""
-                    CREATE OR REPLACE TABLE competencia_03 AS (
-                        {query}
-                    );
-                    """
-            )
-
     logger.info("Export terciaria %s", PATH_CLASE_TERNARIA)
     con.sql(
         f"""
-        COPY competencia_03
-        TO '{PATH_CLASE_TERNARIA}' (FORMAT PARQUET);
-        """
+            COPY competencia_03
+            TO '{PATH_CLASE_TERNARIA}' (FORMAT PARQUET);
+            """
     )
 
+
+def create_clase_binaria(con: duckdb.DuckDBPyConnection) -> None:
+    in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + VALIDATION_MONTHS + TEST_MONTH])
     logger.info("Create binaria")
     con.sql(
         f"""
-            CREATE OR REPLACE TABLE competencia_03 AS (
-                SELECT
-                    *,
-                    CASE
-                        WHEN clase_ternaria = 'BAJA+2' THEN 1
-                        WHEN clase_ternaria ='BAJA+1' THEN 1
-                        WHEN clase_ternaria = 'CONTINUA' THEN 0
-                        ELSE 0
-                    END AS clase_binaria
-                FROM competencia_03
-                WHERE foto_mes IN ({in_clause_all})
-            );
-            """
+                CREATE OR REPLACE TABLE competencia_03 AS (
+                    SELECT
+                        *,
+                        CASE
+                            WHEN clase_ternaria = 'BAJA+2' THEN 1
+                            WHEN clase_ternaria ='BAJA+1' THEN 1
+                            WHEN clase_ternaria = 'CONTINUA' THEN 0
+                            ELSE 0
+                        END AS clase_binaria
+                    FROM competencia_03
+                    WHERE foto_mes IN ({in_clause_all})
+                );
+                """
     )
 
     con.sql(
@@ -136,13 +141,24 @@ def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: boo
         ALTER TABLE competencia_03 DROP COLUMN clase_ternaria;
         """
     )
+
     logger.info("Export binaria %s", PATH_CLASE_BINARIA)
     con.sql(
         f"""
-                COPY competencia_03
-                TO '{PATH_CLASE_BINARIA}' (FORMAT PARQUET);
-                """
+                    COPY competencia_03
+                    TO '{PATH_CLASE_BINARIA}' (FORMAT PARQUET);
+                    """
     )
+
+
+def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: bool = False) -> None:
+    if lags:
+        create_lags(con)
+    if delta_lags:
+        create_delta_lags(con)
+
+    create_clase_ternaria(con)
+    create_clase_binaria(con)
 
 
 def get_dataframe(con: duckdb.DuckDBPyConnection, query: str) -> pd.DataFrame:
