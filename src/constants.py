@@ -25,7 +25,7 @@ DELTA_FILES = [
 ]
 
 # TRAINING
-N_TRIALS_OPTIMIZE = 50
+N_TRIALS_OPTIMIZE = 10
 PRUNER_WARMUP_STEPS = 5
 EARLY_STOPPING_ROUNDS = 10
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}

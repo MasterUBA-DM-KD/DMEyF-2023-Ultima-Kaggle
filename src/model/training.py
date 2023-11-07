@@ -111,7 +111,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
         study.optimize(
             lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
             n_trials=N_TRIALS_OPTIMIZE,
-            n_jobs=2,
+            n_jobs=1,
             callbacks=[mlflc],
             gc_after_trial=True,
         )
