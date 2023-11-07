@@ -64,7 +64,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
         valid_names=["train", "valid"],
         callbacks=[
             optuna.integration.LightGBMPruningCallback(trial, "auc", "valid"),
-            lgb.early_stopping(stopping_rounds=5, verbose=False),
+            lgb.early_stopping(stopping_rounds=5, verbose=True),
         ],
     )
 
@@ -99,7 +99,9 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
     with mlflow.start_run() as _:
         run_name = mlflow.active_run().info.run_name
         logger.info("MLFlow Run %s - Started", run_name)
-        study = optuna.create_study(pruner=optuna.pruners.MedianPruner(), direction="maximize", sampler=sampler)
+        study = optuna.create_study(
+            pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
+        )
         study.optimize(
             lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
             n_trials=1,
@@ -109,7 +111,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
         )
 
         logger.info("Best trial - Retrain")
-        best_model = lgb.LGBMClassifier(**study.best_trial.params(), random_state=RANDOM_STATE, n_jobs=-1)
+        best_model = lgb.LGBMClassifier(**study.best_params, random_state=RANDOM_STATE, n_jobs=-1)
         best_model = best_model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)])
 
         preds = best_model.predict(X_valid)
