@@ -20,14 +20,14 @@ from sklearn.metrics import (
     recall_score,
 )
 
-from src.constants import RANDOM_STATE
+from src.constants import GANANCIA_METRIC, RANDOM_STATE
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 mlflc = MLflowCallback(
     tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
-    metric_name="f-score",
+    metric_name="ganancia" if GANANCIA_METRIC else "f1_score",
     create_experiment=False,
     mlflow_kwargs={
         "nested": True,
@@ -43,6 +43,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
         "force_col_wise": True,
         "feature_pre_filter": False,
         "verbosity": 1,
+        "seed": RANDOM_STATE,
         "learning_rate": trial.suggest_float("lr", 1e-5, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
@@ -69,67 +70,31 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
 
     preds = gbm.predict(X_test)
     preds = np.rint(preds)
-    f_score = f1_score(y_test, preds)
+    if GANANCIA_METRIC:
+        metric = 273000 * (preds == 1).sum() - 7000 * ((preds == 0).sum() + (preds == 1).sum())
+    else:
+        metric = f1_score(y_test, preds)
 
-    return f_score
-
-
-def objective_ganancia(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test, y_test):
-    param = {
-        "metric": "auc",
-        "objective": "binary",
-        "boosting_type": "gbdt",
-        "force_col_wise": True,
-        "feature_pre_filter": False,
-        "verbosity": 1,
-        "learning_rate": trial.suggest_float("lr", 1e-5, 1.5, log=True),
-        "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
-        "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
-        "num_leaves": trial.suggest_int("num_leaves", 2, 256),
-        "max_depth": trial.suggest_int("max_depth", 3, 12),
-        "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 200, 10000, step=100),
-        "min_gain_to_split": trial.suggest_float("min_gain_to_split", 0, 15),
-        "min_child_samples": trial.suggest_int("min_child_samples", 5, 100),
-        "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
-        "bagging_fraction": trial.suggest_float("bagging_fraction", 0.1, 0.9, step=0.1),
-        "feature_fraction": trial.suggest_float("feature_fraction", 0.1, 0.9, step=0.1),
-    }
-
-    gbm = lgb.train(
-        param,
-        dtrain,
-        valid_sets=[dtrain, dvalid],
-        valid_names=["train", "valid"],
-        callbacks=[
-            optuna.integration.LightGBMPruningCallback(trial, "auc", "valid"),
-            lgb.early_stopping(stopping_rounds=5, verbose=False),
-        ],
-    )
-
-    preds = gbm.predict(X_test)
-    preds = np.rint(preds)
-    ganancia = 273000 * (preds == 1).sum() - 7000 * (preds == 0).sum()
-
-    return ganancia
+    return metric
 
 
 def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMClassifier, str]:
     logger.info("Starting training loop")
     mlflow.lightgbm.autolog()
 
-    X_train = df_train.drop(columns=["clase_binaria"], axis=1)
+    X_train = df_train.drop(columns=["clase_binaria", "foto_mes", "numero_de_cliente"], axis=1)
     y_train = df_train["clase_binaria"]
-    weights = y_train.value_counts(normalize=True).min() / y_train.value_counts(normalize=True)
-    train_weights = (
-        pd.DataFrame(y_train.rename("old_target"))
-        .merge(weights, how="left", left_on="old_target", right_on=weights.index)
-        .values
-    )
+    # weights = y_train.value_counts(normalize=True).min() / y_train.value_counts(normalize=True)
+    # train_weights = (
+    #     pd.DataFrame(y_train.rename("old_target"))
+    #     .merge(weights, how="left", left_on="old_target", right_on=weights.index)
+    #     .values
+    # )
 
-    X_valid = df_valid.drop(columns=["clase_binaria"], axis=1)
+    X_valid = df_valid.drop(columns=["clase_binaria", "foto_mes", "numero_de_cliente"], axis=1)
     y_valid = df_valid["clase_binaria"]
 
-    dataset_train = lgb.Dataset(X_train, label=y_train, weight=train_weights[:, 1])
+    dataset_train = lgb.Dataset(X_train, label=y_train)  # , weight=train_weights[:, 1])
     dataset_valid = lgb.Dataset(X_valid, label=y_valid, reference=dataset_train)
 
     sampler = TPESampler(seed=RANDOM_STATE)
@@ -141,11 +106,10 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
             pruner=optuna.pruners.MedianPruner(n_warmup_steps=5), direction="maximize", sampler=sampler
         )
         study.optimize(
-            lambda trial: objective_ganancia(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
+            lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
             n_trials=10,
             n_jobs=2,
             callbacks=[mlflc],
-            gc_after_trial=True,
         )
 
         best_params = study.best_params
@@ -156,7 +120,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
 
         logger.info("Saving model")
         input_example = X_valid.iloc[[0]]
-        mlflow.lightgbm.log_model(best_model, "best_model", input_example=input_example)
+        mlflow.lightgbm.log_model(best_model, "model", input_example=input_example)
 
         logger.info("Metrics - Training")
         log_metrics(best_model, X_train, y_train, "training")
@@ -176,10 +140,12 @@ def log_metrics(model, X, y, label):
     acc = accuracy_score(y, preds)
     prec = precision_score(y, preds)
     rec = recall_score(y, preds)
+    ganancia = 273000 * (preds == 1).sum() - 7000 * ((preds == 0).sum() + (preds == 1).sum())
     mlflow.log_metric(f"{label}_f-score", f_score)
     mlflow.log_metric(f"{label}_accuracy", acc)
     mlflow.log_metric(f"{label}_precision", prec)
     mlflow.log_metric(f"{label}_recall", rec)
+    mlflow.log_metric(f"{label}_ganancia", ganancia)
     cm = confusion_matrix(y, preds, labels=model.classes_, normalize="all")
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=model.classes_)
     fig = disp.plot().figure_
