@@ -1,10 +1,20 @@
 import logging
 import logging.config
+import os
 
 import duckdb
 
 from src.constants import PARAMS_LGB  # noqa
-from src.constants import PATH_CLASE_BINARIA, PATH_CRUDO, QUERY_DF_TEST, QUERY_DF_TRAIN, QUERY_DF_VALID, RUN_ETL
+from src.constants import (
+    MLFLOW_ARTIFACT_ROOT,
+    MLFLOW_TRACKING_URI,
+    PATH_CLASE_TERNARIA,
+    PATH_CRUDO,
+    QUERY_DF_TEST,
+    QUERY_DF_TRAIN,
+    QUERY_DF_VALID,
+    RUN_ETL,
+)
 from src.model.inference import predictions_per_seed
 from src.model.training import training_loop
 from src.preprocess.etl import extract, get_dataframe, transform
@@ -12,6 +22,9 @@ from src.preprocess.etl import extract, get_dataframe, transform
 logging.basicConfig(format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+os.environ["MLFLOW_TRACKING_URI"] = MLFLOW_TRACKING_URI
+os.environ["MLFLOW_ARTIFACT_ROOT"] = MLFLOW_ARTIFACT_ROOT
 
 if __name__ == "__main__":
     logger.info("Connecting to in-memory database")
@@ -28,10 +41,10 @@ if __name__ == "__main__":
         transform(con, True, True)
         logger.info("Transform - Finished")
     else:
-        logger.warning("Reading from %s - Transform will be skipped", PATH_CLASE_BINARIA)
+        logger.warning("Reading from %s - Transform will be skipped", PATH_CLASE_TERNARIA)
 
         logger.info("Extract - Started")
-        extract(con, PATH_CLASE_BINARIA)
+        extract(con, PATH_CLASE_TERNARIA)
         logger.info("Extract - Finished")
 
     logger.info("Preprocess for training - Started")

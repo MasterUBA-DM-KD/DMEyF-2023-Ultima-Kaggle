@@ -1,9 +1,13 @@
 # GENERAL PURPOSE
+RUN_ETL = True
 RANDOM_STATE = 42
+OPTUNA_STORAGE = "sqlite:///database/optuna.db"
+MLFLOW_TRACKING_URI = "sqlite:///database/mlruns.db"
+MLFLOW_ARTIFACT_ROOT = "gs://mlflow-artifacts-uribe/mlruns"
+MATRIX_GANANCIA = {"BAJA+2": 273000, "BAJA+1": -7000, "CONTINUA": -7000}
 SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
 
 # ETL
-RUN_ETL = False
 DATABASE_PATH = "database/competencia_03.duckdb"
 PATH_CRUDO = "~/buckets/b1/datasets/raw/competencia_03_crudo.parquet"
 PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"
@@ -25,10 +29,10 @@ DELTA_FILES = [
 ]
 
 # TRAINING
-N_TRIALS_OPTIMIZE = 10
-PRUNER_WARMUP_STEPS = 5
-EARLY_STOPPING_ROUNDS = 5
-COLS_TO_DROP = ["clase_binaria", "foto_mes", "numero_de_cliente"]
+N_TRIALS_OPTIMIZE = 25
+PRUNER_WARMUP_STEPS = 10
+EARLY_STOPPING_ROUNDS = 10
+COLS_TO_DROP = ["clase_binaria", "clase_binaria"]
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}
 
 TRAINING_MONTHS = [

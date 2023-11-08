@@ -48,12 +48,13 @@ def predictions_per_seed(
             init_model=model,
             callbacks=[early_stopper],
         )
-
-        preds = gbm.predict_proba(X_test, num_threads=10)
+        logger.info("Prediction with seed %s", seed)
+        preds = gbm.predict_proba(X_test, n_jobs=-1)
         final_preds[f"seed_{seed}"] = preds[:, 1]
 
     final_preds["Predicted"] = final_preds.iloc[:, 1:].mean(axis=1)
 
+    logger.info("Aggregating predictions - all seeds")
     final_preds = final_preds.sort_values(by="Predicted", ascending=False)
     final_preds = final_preds.reset_index(drop=True)
     final_preds.to_csv(os.path.join(base_path, "predictions.csv"), index=False)

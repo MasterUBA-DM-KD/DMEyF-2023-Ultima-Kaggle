@@ -136,18 +136,12 @@ def create_clase_binaria(con: duckdb.DuckDBPyConnection) -> None:
                 """
     )
 
-    con.sql(
-        """
-        ALTER TABLE competencia_03 DROP COLUMN clase_ternaria;
-        """
-    )
-
     logger.info("Export binaria %s", PATH_CLASE_BINARIA)
     con.sql(
         f"""
-                    COPY competencia_03
-                    TO '{PATH_CLASE_BINARIA}' (FORMAT PARQUET);
-                    """
+        COPY competencia_03
+        TO '{PATH_CLASE_BINARIA}' (FORMAT PARQUET);
+        """
     )
 
 

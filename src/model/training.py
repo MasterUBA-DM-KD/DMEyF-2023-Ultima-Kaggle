@@ -23,8 +23,9 @@ from sklearn.metrics import (
 from src.constants import (
     COLS_TO_DROP,
     EARLY_STOPPING_ROUNDS,
-    EVALUATOR_CONFIG,
+    MATRIX_GANANCIA,
     N_TRIALS_OPTIMIZE,
+    OPTUNA_STORAGE,
     PRUNER_WARMUP_STEPS,
     RANDOM_STATE,
 )
@@ -36,7 +37,11 @@ early_stopper = lgb.early_stopping(stopping_rounds=EARLY_STOPPING_ROUNDS, verbos
 
 
 def objective(
-    trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test: pd.DataFrame, y_test: pd.Series
+    trial: optuna.Trial,
+    dtrain: lgb.Dataset,
+    dvalid: lgb.Dataset,
+    X_valid: pd.DataFrame,
+    ternaria_for_ganancia: pd.DataFrame,
 ) -> float:
     params_space = {
         "metric": "auc",
@@ -70,35 +75,38 @@ def objective(
         ],
     )
 
-    preds = gbm.predict(X_test, n_jobs=-1)
-    preds = np.rint(preds)
-    metric = f1_score(y_test, preds)
+    preds = gbm.predict(X_valid, n_jobs=-1)
+    ternaria_for_ganancia["preds"] = np.rint(preds)
+    ternaria_for_ganancia["ganancia"] = ternaria_for_ganancia["preds"] * ternaria_for_ganancia["weights"]
+    ganancia_total = ternaria_for_ganancia["ganancia"].sum()
 
-    return metric
+    return ganancia_total
 
 
 def find_best_model(
-    dataset_train: lgb.Dataset, dataset_valid: lgb.Dataset, X_valid: pd.DataFrame, y_valid: pd.Series
-) -> Tuple[LGBMClassifier, str]:
+    dataset_train: lgb.Dataset, dataset_valid: lgb.Dataset, X_valid: pd.DataFrame, valid_ternaria: pd.DataFrame
+) -> dict:
     logger.info("Looking for best model")
     sampler = TPESampler(seed=RANDOM_STATE)
     pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
     storage = optuna.storages.RDBStorage(
-        url="sqlite:///:memory:",
+        url=OPTUNA_STORAGE,
         engine_kwargs={"connect_args": {"timeout": 120}},
     )
     mlflow_callback = MLflowCallback(
         tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
-        metric_name="f1-score",
+        metric_name="ganancia",
         create_experiment=False,
         mlflow_kwargs={
             "nested": True,
         },
     )
 
-    study = optuna.create_study(storage=storage, pruner=pruner, direction="maximize", sampler=sampler)
+    study = optuna.create_study(
+        storage=storage, pruner=pruner, direction="maximize", sampler=sampler, study_name="Fine-Tune"
+    )
     study.optimize(
-        lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
+        lambda trial: objective(trial, dataset_train, dataset_valid, X_valid, valid_ternaria),
         n_trials=N_TRIALS_OPTIMIZE,
         n_jobs=1,
         callbacks=[mlflow_callback],
@@ -113,6 +121,11 @@ def training_loop(
 ) -> Tuple[LGBMClassifier, str]:
     mlflow.lightgbm.autolog()
     logger.info("Starting training loop")
+
+    valid_ternaria = df_valid["clase_ternaria"].copy()
+
+    valid_ternaria = valid_ternaria.to_frame()
+    valid_ternaria["weights"] = valid_ternaria["clase_ternaria"].map(MATRIX_GANANCIA)
 
     X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
     X_valid = df_valid.drop(columns=COLS_TO_DROP, axis=1).copy()
@@ -143,9 +156,10 @@ def training_loop(
 
         if params is None:
             logger.info("Finding best model")
-            params = find_best_model(dataset_train, dataset_valid, X_valid, y_valid)
+            params = find_best_model(dataset_train, dataset_valid, X_valid, valid_ternaria)
 
         logger.info("Re-training with best params")
+        params["verbosity"] = -1
         best_model = lgb.LGBMClassifier(**params, random_state=RANDOM_STATE)
         best_model = best_model.fit(
             X_train,
@@ -161,19 +175,8 @@ def training_loop(
         f_score = f1_score(y_valid, preds)
         mlflow.log_metric("f-score", f_score)
 
-        eval_data = X_valid.copy()
-        eval_data["target"] = y_valid.copy()
-
         logger.info("Saving best model")
-        model_info = mlflow.lightgbm.log_model(best_model, "model")
-        mlflow.evaluate(
-            model_info.model_uri,
-            data=eval_data,
-            targets="target",
-            model_type="classifier",
-            evaluators="default",
-            evaluator_config=EVALUATOR_CONFIG,
-        )
+        mlflow.lightgbm.log_model(best_model, "model")
 
         logger.info("Metrics - Training")
         log_metrics(best_model, X_train, y_train, "training")
@@ -199,8 +202,8 @@ def log_metrics(model: lgb.LGBMClassifier, X: pd.DataFrame, y: pd.Series, label:
     mlflow.log_metric(f"{label}_precision", prec)
     mlflow.log_metric(f"{label}_recall", rec)
     mlflow.log_metric(f"{label}_ganancia", ganancia)
-    cm = confusion_matrix(y, preds, labels=model.classes_, normalize="all")
+    cm = confusion_matrix(y, preds, labels=model.classes_, normalize="true")
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=model.classes_)
-    fig = disp.plot().figure_
+    fig = disp.plot(cmap="Blues").figure_
     plt.savefig(f"{label}_cm.png")
     mlflow.log_figure(fig, f"{label}_cm.png")
