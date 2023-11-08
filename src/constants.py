@@ -27,7 +27,8 @@ DELTA_FILES = [
 # TRAINING
 N_TRIALS_OPTIMIZE = 10
 PRUNER_WARMUP_STEPS = 5
-EARLY_STOPPING_ROUNDS = 10
+EARLY_STOPPING_ROUNDS = 5
+COLS_TO_DROP = ["clase_binaria", "foto_mes", "numero_de_cliente"]
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}
 
 TRAINING_MONTHS = [
@@ -58,7 +59,7 @@ TRAINING_MONTHS = [
 ]
 VALIDATION_MONTHS = [202107, 202108]
 TEST_MONTH = [202109]
-BASE_PATH_PREDICTIONS = "~/buckets/b1/datasets/processed/predictions"
+BASE_PATH_PREDICTIONS = "../buckets/b1/datasets/processed/predictions"
 
 in_clause_training = ", ".join([str(i) for i in TRAINING_MONTHS])
 QUERY_DF_TRAIN = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_training})"

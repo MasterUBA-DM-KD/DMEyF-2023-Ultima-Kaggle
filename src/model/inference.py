@@ -5,7 +5,7 @@ import lightgbm as lgb
 import pandas as pd
 from lightgbm import LGBMClassifier
 
-from src.constants import BASE_PATH_PREDICTIONS, EARLY_STOPPING_ROUNDS, SEEDS
+from src.constants import BASE_PATH_PREDICTIONS, COLS_TO_DROP, EARLY_STOPPING_ROUNDS, SEEDS
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -20,9 +20,9 @@ def predictions_per_seed(
     base_path = os.path.join(BASE_PATH_PREDICTIONS, run_name)
     os.makedirs(base_path, exist_ok=True)
 
-    X_train = df_train.drop(columns=["clase_binaria", "foto_mes", "numero_de_cliente"], axis=1)
-    X_valid = df_valid.drop(columns=["clase_binaria", "foto_mes", "numero_de_cliente"], axis=1)
-    X_test = df_test.drop(columns=["clase_binaria", "foto_mes", "numero_de_cliente"], axis=1)
+    X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
+    X_valid = df_valid.drop(columns=COLS_TO_DROP, axis=1).copy()
+    X_test = df_test.drop(columns=COLS_TO_DROP, axis=1).copy()
 
     y_train = df_train["clase_binaria"]
     y_valid = df_valid["clase_binaria"]
@@ -30,15 +30,14 @@ def predictions_per_seed(
     final_preds = df_test["numero_de_cliente"].to_frame()
 
     params = model.get_params()
-    params["learning_rate"] = params.pop("lr")
     params["objective"] = "binary"
     params["metric"] = "auc"
     params["force_col_wise"] = True
     params["n_jobs"] = -1
 
     for seed in SEEDS:
+        logger.info("Training with seed %s", seed)
         params["random_state"] = seed
-
         gbm = lgb.LGBMClassifier(**params)
         gbm.fit(
             X=X_train,
@@ -50,13 +49,14 @@ def predictions_per_seed(
             callbacks=[early_stopper],
         )
 
-        preds = gbm.predict_proba(X_test)
+        preds = gbm.predict_proba(X_test, num_threads=10)
         final_preds[f"seed_{seed}"] = preds[:, 1]
 
     final_preds["Predicted"] = final_preds.iloc[:, 1:].mean(axis=1)
 
     final_preds = final_preds.sort_values(by="Predicted", ascending=False)
     final_preds = final_preds.reset_index(drop=True)
+    final_preds.to_csv(os.path.join(base_path, "predictions.csv"), index=False)
 
     logger.info("Saving aggregated predictions")
     for cut in range(5000, 20000, 500):

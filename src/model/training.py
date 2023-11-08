@@ -20,17 +20,19 @@ from sklearn.metrics import (
     recall_score,
 )
 
-from src.constants import EARLY_STOPPING_ROUNDS, EVALUATOR_CONFIG, N_TRIALS_OPTIMIZE, PRUNER_WARMUP_STEPS, RANDOM_STATE
+from src.constants import (
+    COLS_TO_DROP,
+    EARLY_STOPPING_ROUNDS,
+    EVALUATOR_CONFIG,
+    N_TRIALS_OPTIMIZE,
+    PRUNER_WARMUP_STEPS,
+    RANDOM_STATE,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 early_stopper = lgb.early_stopping(stopping_rounds=EARLY_STOPPING_ROUNDS, verbose=True)
-
-storage = optuna.storages.RDBStorage(
-    url="sqlite:///:memory:",
-    engine_kwargs={"connect_args": {"timeout": 120}},
-)
 
 
 def objective(
@@ -45,7 +47,7 @@ def objective(
         "verbosity": -1,
         "seed": RANDOM_STATE,
         "n_jobs": -1,
-        "learning_rate": trial.suggest_float("lr", 1e-5, 1.5, log=True),
+        "learning_rate": trial.suggest_float("lr", 1e-2, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
         "num_leaves": trial.suggest_int("num_leaves", 2, 256),
@@ -68,7 +70,7 @@ def objective(
         ],
     )
 
-    preds = gbm.predict(X_test)
+    preds = gbm.predict(X_test, num_threads=10)
     preds = np.rint(preds)
     metric = f1_score(y_test, preds)
 
@@ -81,6 +83,10 @@ def find_best_model(
     logger.info("Looking for best model")
     sampler = TPESampler(seed=RANDOM_STATE)
     pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
+    storage = optuna.storages.RDBStorage(
+        url="sqlite:///:memory:",
+        engine_kwargs={"connect_args": {"timeout": 120}},
+    )
     mlflow_callback = MLflowCallback(
         tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
         metric_name="f1-score",
@@ -108,20 +114,21 @@ def find_best_model(
 def training_loop(
     df_train: pd.DataFrame, df_valid: pd.DataFrame, params: Optional[dict] = None
 ) -> Tuple[LGBMClassifier, str]:
-    logger.info("Starting training loop")
     mlflow.lightgbm.autolog()
+    logger.info("Starting training loop")
 
-    X_train = df_train.drop(columns=["clase_binaria", "foto_mes", "numero_de_cliente"], axis=1)
-    y_train = df_train["clase_binaria"]
+    X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
+    X_valid = df_valid.drop(columns=COLS_TO_DROP, axis=1).copy()
+
+    y_train = df_train["clase_binaria"].copy()
+    y_valid = df_valid["clase_binaria"].copy()
+
     weights = y_train.value_counts(normalize=True).min() / y_train.value_counts(normalize=True)
     train_weights = (
         pd.DataFrame(y_train.rename("old_target"))
         .merge(weights, how="left", left_on="old_target", right_on=weights.index)
         .values
     )
-
-    X_valid = df_valid.drop(columns=["clase_binaria", "foto_mes", "numero_de_cliente"], axis=1)
-    y_valid = df_valid["clase_binaria"]
 
     dataset_train = lgb.Dataset(X_train, label=y_train, weight=train_weights[:, 1])
     dataset_valid = lgb.Dataset(X_valid, label=y_valid, reference=dataset_train)
@@ -135,8 +142,15 @@ def training_loop(
             params = find_best_model(dataset_train, dataset_valid, X_valid, y_valid)
 
         logger.info("Re-training with best params")
-        best_model = lgb.LGBMClassifier(**params, random_state=RANDOM_STATE, n_jobs=-1)
-        best_model = best_model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], callbacks=[early_stopper])
+        best_model = lgb.LGBMClassifier(**params, random_state=RANDOM_STATE)
+        best_model = best_model.fit(
+            X_train,
+            y_train,
+            eval_metric="auc",
+            eval_names=["train", "valid"],
+            eval_set=[(X_train, y_train), (X_valid, y_valid)],
+            callbacks=[early_stopper],
+        )
 
         preds = best_model.predict(X_valid)
         preds = np.rint(preds)
@@ -169,7 +183,7 @@ def training_loop(
 
 
 def log_metrics(model: lgb.LGBMClassifier, X: pd.DataFrame, y: pd.Series, label: str) -> None:
-    preds = model.predict(X)
+    preds = model.predict(X, num_threads=10)
     preds = np.rint(preds)
     f_score = f1_score(y, preds)
     acc = accuracy_score(y, preds)
