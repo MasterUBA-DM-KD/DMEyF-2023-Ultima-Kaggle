@@ -186,6 +186,8 @@ def training_loop(
 
         logger.info("MLFlow Run %s - Finished", run_name)
 
+    mlflow.end_run()
+
     return best_model, run_name
 
 
