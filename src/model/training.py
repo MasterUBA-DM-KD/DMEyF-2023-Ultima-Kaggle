@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Tuple
+from typing import Optional, Tuple
 
 import lightgbm as lgb
 import matplotlib.pyplot as plt
@@ -25,31 +25,24 @@ from src.constants import EARLY_STOPPING_ROUNDS, EVALUATOR_CONFIG, N_TRIALS_OPTI
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-mlflc = MLflowCallback(
-    tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
-    metric_name="f1_score",
-    create_experiment=False,
-    mlflow_kwargs={
-        "nested": True,
-    },
-)
-
 early_stopper = lgb.early_stopping(stopping_rounds=EARLY_STOPPING_ROUNDS, verbose=True)
 
 storage = optuna.storages.RDBStorage(
-    url="sqlite:///database/optuna.db",
+    url="sqlite:///:memory:",
     engine_kwargs={"connect_args": {"timeout": 120}},
 )
 
 
-def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test, y_test):
-    param = {
+def objective(
+    trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_test: pd.DataFrame, y_test: pd.Series
+) -> float:
+    params_space = {
         "metric": "auc",
         "objective": "binary",
         "boosting_type": "gbdt",
         "force_col_wise": True,
         "feature_pre_filter": False,
-        "verbosity": 1,
+        "verbosity": -1,
         "seed": RANDOM_STATE,
         "n_jobs": -1,
         "learning_rate": trial.suggest_float("lr", 1e-5, 1.5, log=True),
@@ -65,7 +58,7 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
     }
 
     gbm = lgb.train(
-        param,
+        params_space,
         dtrain,
         valid_sets=[dtrain, dvalid],
         valid_names=["train", "valid"],
@@ -82,7 +75,39 @@ def objective(trial: optuna.Trial, dtrain: lgb.Dataset, dvalid: lgb.Dataset, X_t
     return metric
 
 
-def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMClassifier, str]:
+def find_best_model(
+    dataset_train: lgb.Dataset, dataset_valid: lgb.Dataset, X_valid: pd.DataFrame, y_valid: pd.Series
+) -> Tuple[LGBMClassifier, str]:
+    logger.info("Looking for best model")
+    sampler = TPESampler(seed=RANDOM_STATE)
+    pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
+    mlflow_callback = MLflowCallback(
+        tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
+        metric_name="f1-score",
+        create_experiment=False,
+        mlflow_kwargs={
+            "nested": True,
+        },
+    )
+
+    study = optuna.create_study(storage=storage, pruner=pruner, direction="maximize", sampler=sampler)
+    study.optimize(
+        lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
+        n_trials=N_TRIALS_OPTIMIZE,
+        n_jobs=1,
+        callbacks=[mlflow_callback],
+        gc_after_trial=True,
+    )
+
+    best_params = study.best_params
+    best_params["learning_rate"] = best_params.pop("lr")
+
+    return best_params
+
+
+def training_loop(
+    df_train: pd.DataFrame, df_valid: pd.DataFrame, params: Optional[dict] = None
+) -> Tuple[LGBMClassifier, str]:
     logger.info("Starting training loop")
     mlflow.lightgbm.autolog()
 
@@ -101,26 +126,16 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
     dataset_train = lgb.Dataset(X_train, label=y_train, weight=train_weights[:, 1])
     dataset_valid = lgb.Dataset(X_valid, label=y_valid, reference=dataset_train)
 
-    sampler = TPESampler(seed=RANDOM_STATE)
-    pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
-
     with mlflow.start_run() as _:
         run_name = mlflow.active_run().info.run_name
         logger.info("MLFlow Run %s - Started", run_name)
-        study = optuna.create_study(storage=storage, pruner=pruner, direction="maximize", sampler=sampler)
-        study.optimize(
-            lambda trial: objective(trial, dataset_train, dataset_valid, X_valid.values, y_valid.values),
-            n_trials=N_TRIALS_OPTIMIZE,
-            n_jobs=1,
-            callbacks=[mlflc],
-            gc_after_trial=True,
-        )
 
-        logger.info("Best trial - Retrain")
-        best_params = study.best_params
-        best_params["learning_rate"] = best_params.pop("lr")
+        if params is None:
+            logger.info("Finding best model")
+            params = find_best_model(dataset_train, dataset_valid, X_valid, y_valid)
 
-        best_model = lgb.LGBMClassifier(**study.best_params, random_state=RANDOM_STATE, n_jobs=-1)
+        logger.info("Re-training with best params")
+        best_model = lgb.LGBMClassifier(**params, random_state=RANDOM_STATE, n_jobs=-1)
         best_model = best_model.fit(X_train, y_train, eval_set=[(X_valid, y_valid)], callbacks=[early_stopper])
 
         preds = best_model.predict(X_valid)
@@ -131,7 +146,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
         eval_data = X_valid.copy()
         eval_data["target"] = y_valid.copy()
 
-        logger.info("Saving model")
+        logger.info("Saving best model")
         model_info = mlflow.lightgbm.log_model(best_model, "model")
         mlflow.evaluate(
             model_info.model_uri,
@@ -153,7 +168,7 @@ def training_loop(df_train: pd.DataFrame, df_valid: pd.DataFrame) -> Tuple[LGBMC
     return best_model, run_name
 
 
-def log_metrics(model, X, y, label):
+def log_metrics(model: lgb.LGBMClassifier, X: pd.DataFrame, y: pd.Series, label: str) -> None:
     preds = model.predict(X)
     preds = np.rint(preds)
     f_score = f1_score(y, preds)

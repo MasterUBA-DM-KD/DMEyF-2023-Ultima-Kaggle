@@ -3,7 +3,15 @@ import logging.config
 
 import duckdb
 
-from src.constants import PATH_CLASE_BINARIA, PATH_CRUDO, QUERY_DF_TEST, QUERY_DF_TRAIN, QUERY_DF_VALID, RUN_ETL
+from src.constants import (
+    PARAMS_LGB,
+    PATH_CLASE_BINARIA,
+    PATH_CRUDO,
+    QUERY_DF_TEST,
+    QUERY_DF_TRAIN,
+    QUERY_DF_VALID,
+    RUN_ETL,
+)
 from src.model.inference import predictions_per_seed
 from src.model.training import training_loop
 from src.preprocess.etl import extract, get_dataframe, transform
@@ -43,7 +51,7 @@ if __name__ == "__main__":
     con.close()
 
     logger.info("Training - started")
-    model, run_name = training_loop(df_train, df_valid)
+    model, run_name = training_loop(df_train, df_valid, PARAMS_LGB)
     logger.info("Training - Finished")
 
     logger.info("Inference - started")

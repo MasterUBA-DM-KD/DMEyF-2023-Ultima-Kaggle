@@ -68,3 +68,25 @@ QUERY_DF_VALID = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_va
 
 in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
 QUERY_DF_TEST = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})"
+
+
+PARAMS_LGB = {
+    "metric": "auc",
+    "objective": "binary",
+    "boosting_type": "gbdt",
+    "force_col_wise": True,
+    "feature_pre_filter": False,
+    "verbosity": -1,
+    "seed": RANDOM_STATE,
+    "n_jobs": -1,
+    "bagging_fraction": 0.1,
+    "bagging_freq": 2,
+    "feature_fraction": 0.5,
+    "lambda_l1": 0.0035621591425357845,
+    "lambda_l2": 0.1354162723749174,
+    "learning_rate": 0.1497926694870291,
+    "max_depth": 10,
+    "min_data_in_leaf": 6600,
+    "min_gain_to_split": 3.4328502146787363,
+    "num_leaves": 11,
+}
