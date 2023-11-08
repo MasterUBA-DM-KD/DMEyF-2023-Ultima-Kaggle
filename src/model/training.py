@@ -47,7 +47,7 @@ def objective(
         "verbosity": -1,
         "seed": RANDOM_STATE,
         "n_jobs": -1,
-        "learning_rate": trial.suggest_float("lr", 1e-2, 1.5, log=True),
+        "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
         "num_leaves": trial.suggest_int("num_leaves", 2, 256),
@@ -70,7 +70,7 @@ def objective(
         ],
     )
 
-    preds = gbm.predict(X_test, num_threads=10)
+    preds = gbm.predict(X_test, n_jobs=-1)
     preds = np.rint(preds)
     metric = f1_score(y_test, preds)
 
@@ -105,10 +105,7 @@ def find_best_model(
         gc_after_trial=True,
     )
 
-    best_params = study.best_params
-    best_params["learning_rate"] = best_params.pop("lr")
-
-    return best_params
+    return study.best_params
 
 
 def training_loop(
@@ -130,8 +127,15 @@ def training_loop(
         .values
     )
 
+    weights = y_valid.value_counts(normalize=True).min() / y_valid.value_counts(normalize=True)
+    valid_weights = (
+        pd.DataFrame(y_valid.rename("old_target"))
+        .merge(weights, how="left", left_on="old_target", right_on=weights.index)
+        .values
+    )
+
     dataset_train = lgb.Dataset(X_train, label=y_train, weight=train_weights[:, 1])
-    dataset_valid = lgb.Dataset(X_valid, label=y_valid, reference=dataset_train)
+    dataset_valid = lgb.Dataset(X_valid, label=y_valid, reference=dataset_train, weight=valid_weights[:, 1])
 
     with mlflow.start_run() as _:
         run_name = mlflow.active_run().info.run_name
@@ -183,7 +187,7 @@ def training_loop(
 
 
 def log_metrics(model: lgb.LGBMClassifier, X: pd.DataFrame, y: pd.Series, label: str) -> None:
-    preds = model.predict(X, num_threads=10)
+    preds = model.predict(X, n_jobs=-1)
     preds = np.rint(preds)
     f_score = f1_score(y, preds)
     acc = accuracy_score(y, preds)
