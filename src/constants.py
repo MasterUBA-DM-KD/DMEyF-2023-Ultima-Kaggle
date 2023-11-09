@@ -79,15 +79,11 @@ TRAINING_MONTHS = [
     202106,
     202107,
 ]
-VALIDATION_MONTHS = [202003, 202009]
 TEST_MONTH = [202109]
 BASE_PATH_PREDICTIONS = "../buckets/b1/datasets/processed/predictions"
 
 in_clause_training = ", ".join([str(i) for i in TRAINING_MONTHS])
 QUERY_DF_TRAIN = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_training})"
-
-in_clause_validation = ", ".join([str(i) for i in VALIDATION_MONTHS])
-QUERY_DF_VALID = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_validation})"
 
 in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
 QUERY_DF_TEST = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})"
