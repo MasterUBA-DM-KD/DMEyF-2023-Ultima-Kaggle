@@ -3,7 +3,15 @@ import logging
 import duckdb
 import pandas as pd
 
-from src.constants import DELTA_FILES, LAG_FILES, TEST_MONTH, TRAINING_MONTHS, VALIDATION_MONTHS
+from src.constants import (
+    DELTA_FILES,
+    LAG_FILES,
+    MOVING_AVG_FILES,
+    TEND_FILES,
+    TEST_MONTH,
+    TRAINING_MONTHS,
+    VALIDATION_MONTHS,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -30,33 +38,18 @@ def adjust_inflation(con: duckdb.DuckDBPyConnection) -> None:
     pass
 
 
-def create_lags(con: duckdb.DuckDBPyConnection) -> None:
-    logger.info("Creating lags")
-    for i in LAG_FILES:
+def create_features(con: duckdb.DuckDBPyConnection) -> None:
+    logger.info("Creating features")
+    for i in LAG_FILES + TEND_FILES + MOVING_AVG_FILES + DELTA_FILES:
         with open(i) as f:
             query = f.read()
-        logger.info("Creating lag %s", i)
+        logger.info("Creating %s", i)
         con.sql(
             f"""
                         CREATE OR REPLACE TABLE competencia_03 AS (
                             {query}
                         );
                     """
-        )
-
-
-def create_delta_lags(con: duckdb.DuckDBPyConnection) -> None:
-    logger.info("Creating delta-lags")
-    for i in DELTA_FILES:
-        with open(i) as f:
-            query = f.read()
-        logger.info("Creating deta-lag %s", i)
-        con.sql(
-            f"""
-                        CREATE OR REPLACE TABLE competencia_03 AS (
-                            {query}
-                        );
-                        """
         )
 
 
@@ -146,12 +139,13 @@ def create_clase_binaria(con: duckdb.DuckDBPyConnection, path_binaria: str) -> N
 
 
 def transform(
-    con: duckdb.DuckDBPyConnection, path_ternaria: str, path_binaria: str, lags: bool = True, delta_lags: bool = False
+    con: duckdb.DuckDBPyConnection, path_ternaria: str, path_binaria: str, inflation: bool = True, features: bool = True
 ) -> None:
-    if lags:
-        create_lags(con)
-    if delta_lags:
-        create_delta_lags(con)
+    if inflation:
+        adjust_inflation(con)
+
+    if features:
+        create_features(con)
 
     create_clase_ternaria(con, path_ternaria)
     create_clase_binaria(con, path_binaria)

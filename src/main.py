@@ -37,7 +37,7 @@ if __name__ == "__main__":
         logger.info("Extract - Finished")
 
         logger.info("Transform - Started")
-        transform(con, PATH_CLASE_TERNARIA, PATH_CLASE_BINARIA, False, False)
+        transform(con, PATH_CLASE_TERNARIA, PATH_CLASE_BINARIA, False, True)
         logger.info("Transform - Finished")
     else:
         logger.warning("Reading from %s - Transform will be skipped", PATH_CLASE_BINARIA)

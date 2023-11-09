@@ -1,5 +1,5 @@
 # GENERAL PURPOSE
-RUN_ETL = False
+RUN_ETL = True
 RANDOM_STATE = 42
 MLFLOW_TRACKING_URI = "sqlite:///database/mlruns.db"
 MLFLOW_ARTIFACT_ROOT = "gs://mlflow-artifacts-uribe/mlruns"
@@ -28,6 +28,16 @@ DELTA_FILES = [
     "sql/delta_lags_6.sql",
 ]
 
+TEND_FILES = [
+    "sql/tend_3.sql",
+    "sql/tend_6.sql",
+]
+
+MOVING_AVG_FILES = [
+    "sql/moving_avg_3.sql",
+    "sql/moving_avg_6.sql",
+]
+
 # TRAINING
 N_TRIALS_OPTIMIZE = 25
 PRUNER_WARMUP_STEPS = 5
@@ -36,19 +46,19 @@ COLS_TO_DROP = ["clase_ternaria", "clase_binaria"]
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}
 
 TRAINING_MONTHS = [
-    # 201901,
-    # 201902,
-    # 201903,
-    # 201904,
-    # 201905,
-    # 201906,
-    # 201907,
-    # 201908,
-    # 201908,
-    # 201909,
-    # 201910,
-    # 201911,
-    # 201912,
+    201901,
+    201902,
+    201903,
+    201904,
+    201905,
+    201906,
+    201907,
+    201908,
+    201908,
+    201909,
+    201910,
+    201911,
+    201912,
     202001,
     202002,
     202010,
