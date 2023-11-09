@@ -25,7 +25,6 @@ from src.constants import (
     EARLY_STOPPING_ROUNDS,
     MATRIX_GANANCIA,
     N_TRIALS_OPTIMIZE,
-    OPTUNA_STORAGE,
     PRUNER_WARMUP_STEPS,
     RANDOM_STATE,
 )
@@ -89,10 +88,6 @@ def find_best_model(
     logger.info("Looking for best model")
     sampler = TPESampler(seed=RANDOM_STATE)
     pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
-    storage = optuna.storages.RDBStorage(
-        url=OPTUNA_STORAGE,
-        engine_kwargs={"connect_args": {"timeout": 120}},
-    )
     mlflow_callback = MLflowCallback(
         tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
         metric_name="ganancia",
@@ -103,7 +98,6 @@ def find_best_model(
     )
 
     study = optuna.create_study(
-        storage=storage,
         pruner=pruner,
         direction="maximize",
         sampler=sampler,
@@ -113,7 +107,7 @@ def find_best_model(
     study.optimize(
         lambda trial: objective(trial, dataset_train, dataset_valid, X_valid, valid_ternaria),
         n_trials=N_TRIALS_OPTIMIZE,
-        n_jobs=2,
+        n_jobs=3,
         callbacks=[mlflow_callback],
         gc_after_trial=True,
     )

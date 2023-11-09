@@ -1,7 +1,6 @@
 # GENERAL PURPOSE
 RUN_ETL = False
 RANDOM_STATE = 42
-OPTUNA_STORAGE = ":memory:"
 MLFLOW_TRACKING_URI = "sqlite:///database/mlruns.db"
 MLFLOW_ARTIFACT_ROOT = "gs://mlflow-artifacts-uribe/mlruns"
 MATRIX_GANANCIA = {"BAJA+2": 273000, "BAJA+1": -7000, "CONTINUA": -7000}
