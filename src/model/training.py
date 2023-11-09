@@ -27,6 +27,7 @@ from src.constants import (
     N_TRIALS_OPTIMIZE,
     PRUNER_WARMUP_STEPS,
     RANDOM_STATE,
+    RANDOM_STATE_EXTRA,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ def objective(
         "seed": RANDOM_STATE,
         "n_jobs": -1,
         "extra_trees": True,
+        "extra_seed": RANDOM_STATE_EXTRA,
         "max_depth": -1,
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),

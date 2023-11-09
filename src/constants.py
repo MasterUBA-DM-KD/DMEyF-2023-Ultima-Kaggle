@@ -1,6 +1,7 @@
 # GENERAL PURPOSE
 RUN_ETL = True
 RANDOM_STATE = 42
+RANDOM_STATE_EXTRA = 101
 MLFLOW_TRACKING_URI = "sqlite:///database/mlruns.db"
 MLFLOW_ARTIFACT_ROOT = "gs://mlflow-artifacts-uribe/mlruns"
 MATRIX_GANANCIA = {"BAJA+2": 273000, "BAJA+1": -7000, "CONTINUA": -7000}
@@ -15,6 +16,12 @@ PATH_CLASE_BINARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_binar
 PATH_SMALL = "datasets/raw/competencia_03_small.parquet"
 PATH_CLASE_TERNARIA_SMALL = "datasets/processed/competencia_03_clase_ternaria_small.parquet"
 PATH_CLASE_BINARIA_SMALL = "datasets/processed/competencia_03_clase_binaria_small.parquet"
+
+URL_INFLATION = "https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_08_23.xls"
+PATH_INFLATION_RAW = "~/buckets/b1/datasets/raw/inflation.parquet"
+PATH_INFLATION_FINAL = "~/buckets/b1/datasets/processed/inflation.csv"
+
+INFLATION_FILE = "sql/inflation.sql"
 
 LAG_FILES = [
     "sql/lags_1.sql",
