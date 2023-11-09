@@ -1,5 +1,5 @@
 # GENERAL PURPOSE
-RUN_ETL = True
+RUN_ETL = False
 RANDOM_STATE = 42
 OPTUNA_STORAGE = "sqlite:///database/optuna.db"
 MLFLOW_TRACKING_URI = "sqlite:///database/mlruns.db"
