@@ -8,13 +8,14 @@ MATRIX_GANANCIA = {"BAJA+2": 273000, "BAJA+1": -7000, "CONTINUA": -7000}
 SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
 
 # ETL
-DATABASE_PATH = "database/competencia_03.duckdb"
+DATABASE_PATH = "~/buckets/b1/database/competencia_03.duckdb"
 PATH_CRUDO = "~/buckets/b1/datasets/raw/competencia_03_crudo.parquet"
 PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"
 PATH_CLASE_BINARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_binaria.parquet"
 
-PATH_SMALL = "~/buckets/b1/datasets/raw/competencia_03_small.parquet"
-PATH_CLASE_TERNARIA_CSV_SMALL = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria_small.csv"
+PATH_SMALL = "datasets/raw/competencia_03_small.parquet"
+PATH_CLASE_TERNARIA_SMALL = "datasets/processed/competencia_03_clase_ternaria_small.parquet"
+PATH_CLASE_BINARIA_SMALL = "datasets/processed/competencia_03_clase_binaria_small.parquet"
 
 LAG_FILES = [
     "sql/lags_1.sql",
@@ -32,7 +33,7 @@ DELTA_FILES = [
 N_TRIALS_OPTIMIZE = 25
 PRUNER_WARMUP_STEPS = 5
 EARLY_STOPPING_ROUNDS = 10
-COLS_TO_DROP = ["clase_binaria", "clase_binaria"]
+COLS_TO_DROP = ["clase_ternaria", "clase_binaria"]
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}
 
 TRAINING_MONTHS = [

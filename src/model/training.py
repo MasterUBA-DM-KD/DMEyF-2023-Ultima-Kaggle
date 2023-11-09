@@ -78,7 +78,7 @@ def objective(
     preds = gbm.predict(X_valid, n_jobs=-1)
     ternaria_for_ganancia["preds"] = np.rint(preds)
     ternaria_for_ganancia["ganancia"] = ternaria_for_ganancia["preds"] * ternaria_for_ganancia["weights"]
-    ganancia_total = ternaria_for_ganancia["ganancia"].sum()
+    ganancia_total = float(ternaria_for_ganancia["ganancia"].sum())
 
     return ganancia_total
 
@@ -103,7 +103,12 @@ def find_best_model(
     )
 
     study = optuna.create_study(
-        storage=storage, pruner=pruner, direction="maximize", sampler=sampler, study_name="Fine-Tune"
+        storage=storage,
+        pruner=pruner,
+        direction="maximize",
+        sampler=sampler,
+        study_name="Fine-Tune",
+        load_if_exists=True,
     )
     study.optimize(
         lambda trial: objective(trial, dataset_train, dataset_valid, X_valid, valid_ternaria),
@@ -123,7 +128,6 @@ def training_loop(
     logger.info("Starting training loop")
 
     valid_ternaria = df_valid["clase_ternaria"].copy()
-
     valid_ternaria = valid_ternaria.to_frame()
     valid_ternaria["weights"] = valid_ternaria["clase_ternaria"].map(MATRIX_GANANCIA)
 
@@ -155,7 +159,6 @@ def training_loop(
         logger.info("MLFlow Run %s - Started", run_name)
 
         if params is None:
-            logger.info("Finding best model")
             params = find_best_model(dataset_train, dataset_valid, X_valid, valid_ternaria)
 
         logger.info("Re-training with best params")
@@ -170,7 +173,7 @@ def training_loop(
             callbacks=[early_stopper],
         )
 
-        preds = best_model.predict(X_valid)
+        preds = best_model.predict(X_valid, n_jobs=-1)
         preds = np.rint(preds)
         f_score = f1_score(y_valid, preds)
         mlflow.log_metric("f-score", f_score)

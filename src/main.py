@@ -4,10 +4,11 @@ import os
 
 import duckdb
 
-from src.constants import PARAMS_LGB  # noqa
 from src.constants import (
+    DATABASE_PATH,
     MLFLOW_ARTIFACT_ROOT,
     MLFLOW_TRACKING_URI,
+    PATH_CLASE_BINARIA,
     PATH_CLASE_TERNARIA,
     PATH_CRUDO,
     QUERY_DF_TEST,
@@ -17,7 +18,7 @@ from src.constants import (
 )
 from src.model.inference import predictions_per_seed
 from src.model.training import training_loop
-from src.preprocess.etl import extract, get_dataframe, transform
+from src.preprocess.etl import extract, get_dataframe, load, transform
 
 logging.basicConfig(format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
 logger = logging.getLogger(__name__)
@@ -38,13 +39,13 @@ if __name__ == "__main__":
         logger.info("Extract - Finished")
 
         logger.info("Transform - Started")
-        transform(con, True, True)
+        transform(con, PATH_CLASE_TERNARIA, PATH_CLASE_BINARIA, False, False)
         logger.info("Transform - Finished")
     else:
-        logger.warning("Reading from %s - Transform will be skipped", PATH_CLASE_TERNARIA)
+        logger.warning("Reading from %s - Transform will be skipped", PATH_CLASE_BINARIA)
 
         logger.info("Extract - Started")
-        extract(con, PATH_CLASE_TERNARIA)
+        extract(con, PATH_CLASE_BINARIA)
         logger.info("Extract - Finished")
 
     logger.info("Preprocess for training - Started")
@@ -53,13 +54,14 @@ if __name__ == "__main__":
     df_test = get_dataframe(con, QUERY_DF_TEST)
     logger.info("Preprocess for training - Finished")
 
-    logger.info("Closing connection to in-memory database")
-    con.close()
+    logger.info("Loading - Started")
+    load(con, DATABASE_PATH)
+    logger.info("Loading - Finished")
 
-    logger.info("Training - started")
+    logger.info("Training - Started")
     model, run_name = training_loop(df_train, df_valid)
     logger.info("Training - Finished")
 
-    logger.info("Inference - started")
+    logger.info("Inference - Started")
     predictions_per_seed(df_train, df_valid, df_test, model, run_name)
     logger.info("Inference - Finished")

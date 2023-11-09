@@ -3,21 +3,13 @@ import logging
 import duckdb
 import pandas as pd
 
-from src.constants import (
-    DELTA_FILES,
-    LAG_FILES,
-    PATH_CLASE_BINARIA,
-    PATH_CLASE_TERNARIA,
-    TEST_MONTH,
-    TRAINING_MONTHS,
-    VALIDATION_MONTHS,
-)
+from src.constants import DELTA_FILES, LAG_FILES, TEST_MONTH, TRAINING_MONTHS, VALIDATION_MONTHS
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def extract(con: duckdb.DuckDBPyConnection, path_parquet: str) -> None:
+def extract(con: duckdb.DuckDBPyConnection, path_parquet: str, small: bool = False) -> None:
     logger.info("Extracting from %s", path_parquet)
     con.sql(
         f"""
@@ -28,6 +20,14 @@ def extract(con: duckdb.DuckDBPyConnection, path_parquet: str) -> None:
         );
         """
     )
+
+    if small:
+        generate_small_dataset(con)
+
+
+def adjust_inflation(con: duckdb.DuckDBPyConnection) -> None:
+    # TODO: add logic here!
+    pass
 
 
 def create_lags(con: duckdb.DuckDBPyConnection) -> None:
@@ -60,7 +60,7 @@ def create_delta_lags(con: duckdb.DuckDBPyConnection) -> None:
         )
 
 
-def create_clase_ternaria(con: duckdb.DuckDBPyConnection) -> None:
+def create_clase_ternaria(con: duckdb.DuckDBPyConnection, path_ternaria: str) -> None:
     logger.info("Creating ranks")
     con.sql(
         """
@@ -107,16 +107,16 @@ def create_clase_ternaria(con: duckdb.DuckDBPyConnection) -> None:
         """
     )
 
-    logger.info("Export terciaria %s", PATH_CLASE_TERNARIA)
+    logger.info("Export terciaria %s", path_ternaria)
     con.sql(
         f"""
             COPY competencia_03
-            TO '{PATH_CLASE_TERNARIA}' (FORMAT PARQUET);
+            TO '{path_ternaria}' (FORMAT PARQUET);
             """
     )
 
 
-def create_clase_binaria(con: duckdb.DuckDBPyConnection) -> None:
+def create_clase_binaria(con: duckdb.DuckDBPyConnection, path_binaria: str) -> None:
     in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + VALIDATION_MONTHS + TEST_MONTH])
     logger.info("Create binaria")
     con.sql(
@@ -136,23 +136,32 @@ def create_clase_binaria(con: duckdb.DuckDBPyConnection) -> None:
                 """
     )
 
-    logger.info("Export binaria %s", PATH_CLASE_BINARIA)
+    logger.info("Export binaria %s", path_binaria)
     con.sql(
         f"""
         COPY competencia_03
-        TO '{PATH_CLASE_BINARIA}' (FORMAT PARQUET);
+        TO '{path_binaria}' (FORMAT PARQUET);
         """
     )
 
 
-def transform(con: duckdb.DuckDBPyConnection, lags: bool = True, delta_lags: bool = False) -> None:
+def transform(
+    con: duckdb.DuckDBPyConnection, path_ternaria: str, path_binaria: str, lags: bool = True, delta_lags: bool = False
+) -> None:
     if lags:
         create_lags(con)
     if delta_lags:
         create_delta_lags(con)
 
-    create_clase_ternaria(con)
-    create_clase_binaria(con)
+    create_clase_ternaria(con, path_ternaria)
+    create_clase_binaria(con, path_binaria)
+
+
+def load(con: duckdb.DuckDBPyConnection, path_database: str) -> None:
+    logger.info("Exporting database")
+    con.sql(f"EXPORT DATABASE '{path_database}' (FORMAT PARQUET);")
+    logger.info("Closing database")
+    con.close()
 
 
 def get_dataframe(con: duckdb.DuckDBPyConnection, query: str) -> pd.DataFrame:
@@ -187,19 +196,5 @@ def generate_small_dataset(con: duckdb.DuckDBPyConnection) -> None:
             )
         ORDER BY numero_de_cliente, foto_mes
         );
-        """
-    )
-
-    con.sql(
-        """
-        COPY competencia_03_small
-        TO 'datasets/raw/competencia_03_small.csv' (FORMAT CSV, HEADER);
-        """
-    )
-
-    con.sql(
-        """
-        COPY competencia_03_small
-        TO 'datasets/raw/competencia_03_small.parquet' (FORMAT PARQUET);
         """
     )
