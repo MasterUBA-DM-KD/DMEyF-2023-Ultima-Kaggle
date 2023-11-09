@@ -195,12 +195,12 @@ def log_metrics(model: lgb.LGBMClassifier, X: pd.DataFrame, y: pd.Series, label:
     acc = accuracy_score(y, preds)
     prec = precision_score(y, preds)
     rec = recall_score(y, preds)
-    ganancia = 273000 * (preds == 1).sum() - 7000 * ((preds == 0).sum() + (preds == 1).sum())
+
     mlflow.log_metric(f"{label}_f-score", f_score)
     mlflow.log_metric(f"{label}_accuracy", acc)
     mlflow.log_metric(f"{label}_precision", prec)
     mlflow.log_metric(f"{label}_recall", rec)
-    mlflow.log_metric(f"{label}_ganancia", ganancia)
+
     cm = confusion_matrix(y, preds, labels=model.classes_, normalize="true")
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=model.classes_)
     fig = disp.plot(cmap="Blues").figure_

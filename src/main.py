@@ -15,7 +15,6 @@ from src.constants import (
     QUERY_DF_VALID,
     RUN_ETL,
 )
-from src.model.inference import predictions_per_seed
 from src.model.training import training_loop
 from src.preprocess.etl import extract, get_dataframe, transform
 
@@ -59,7 +58,3 @@ if __name__ == "__main__":
     logger.info("Training - Started")
     model, run_name = training_loop(df_train, df_valid)
     logger.info("Training - Finished")
-
-    logger.info("Inference - Started")
-    predictions_per_seed(df_train, df_valid, df_test, model, run_name)
-    logger.info("Inference - Finished")

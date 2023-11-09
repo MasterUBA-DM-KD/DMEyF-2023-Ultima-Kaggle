@@ -48,3 +48,13 @@ The current pipeline requires a `N1` machine in `GCP`, at least 256GB of RAM and
 ```bash
 python -m src.main
 ```
+
+### Upload predictions
+
+After training the model, the predictions can be uploaded to `Kaggle` using the following command:
+
+```bash
+kaggle competitions submit -c dmeyf-2023-ultima -f buckets/b1/datasets/processed/predictions/RUN_NAME/CUT.csv -m "mlflow: RUN_NAME"
+```
+
+Make sure to change `RUN_NAME` and `CUT` to the desired values.
