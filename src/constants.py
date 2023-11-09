@@ -19,7 +19,7 @@ PATH_CLASE_BINARIA_SMALL = "datasets/processed/competencia_03_clase_binaria_smal
 
 URL_INFLATION = "https://www.indec.gob.ar/ftp/cuadros/economia/sh_ipc_08_23.xls"
 PATH_INFLATION_RAW = "~/buckets/b1/datasets/raw/inflation.parquet"
-PATH_INFLATION_FINAL = "~/buckets/b1/datasets/processed/inflation.csv"
+PATH_INFLATION_FINAL = "~/buckets/b1/datasets/processed/inflation.parquet"
 
 INFLATION_FILE = "sql/inflation.sql"
 
