@@ -5,7 +5,6 @@ import os
 import duckdb
 
 from src.constants import (
-    DATABASE_PATH,
     MLFLOW_ARTIFACT_ROOT,
     MLFLOW_TRACKING_URI,
     PATH_CLASE_BINARIA,
@@ -18,7 +17,7 @@ from src.constants import (
 )
 from src.model.inference import predictions_per_seed
 from src.model.training import training_loop
-from src.preprocess.etl import extract, get_dataframe, load, transform
+from src.preprocess.etl import extract, get_dataframe, transform
 
 logging.basicConfig(format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
 logger = logging.getLogger(__name__)
@@ -54,9 +53,8 @@ if __name__ == "__main__":
     df_test = get_dataframe(con, QUERY_DF_TEST)
     logger.info("Preprocess for training - Finished")
 
-    logger.info("Loading - Started")
-    load(con, DATABASE_PATH)
-    logger.info("Loading - Finished")
+    logger.info("Closing connection to database")
+    con.close()
 
     logger.info("Training - Started")
     model, run_name = training_loop(df_train, df_valid)
