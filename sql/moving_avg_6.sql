@@ -1,155 +1,153 @@
 SELECT
     *
-    ,AVG(active_quarter, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS active_quarter_avg_6
-    ,AVG(catm_trx, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS catm_trx_avg_6
-    ,AVG(catm_trx_other, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS catm_trx_other_avg_6
-    ,AVG(ccaja_ahorro, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccaja_ahorro_avg_6
-    ,AVG(ccaja_seguridad, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccaja_seguridad_avg_6
-    ,AVG(ccajas_consultas, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccajas_consultas_avg_6
-    ,AVG(ccajas_depositos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccajas_depositos_avg_6
-    ,AVG(ccajas_extracciones, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccajas_extracciones_avg_6
-    ,AVG(ccajas_otras, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccajas_otras_avg_6
-    ,AVG(ccajas_transacciones, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccajas_transacciones_avg_6
-    ,AVG(ccajeros_propios_descuentos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccajeros_propios_descuentos_avg_6
-    ,AVG(ccallcenter_transacciones, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccallcenter_transacciones_avg_6
-    ,AVG(ccheques_depositados, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccheques_depositados_avg_6
-    ,AVG(ccheques_depositados_rechazados, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccheques_depositados_rechazados_avg_6
-    ,AVG(ccheques_emitidos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccheques_emitidos_avg_6
-    ,AVG(ccheques_emitidos_rechazados, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccheques_emitidos_rechazados_avg_6
-    ,AVG(ccomisiones_mantenimiento, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccomisiones_mantenimiento_avg_6
-    ,AVG(ccomisiones_otras, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccomisiones_otras_avg_6
-    ,AVG(ccuenta_corriente, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccuenta_corriente_avg_6
-    ,AVG(ccuenta_debitos_automaticos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ccuenta_debitos_automaticos_avg_6
-    ,AVG(cdescubierto_preacordado, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cdescubierto_preacordado_avg_6
-    ,AVG(cextraccion_autoservicio, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cextraccion_autoservicio_avg_6
-    ,AVG(cforex, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cforex_avg_6
-    ,AVG(cforex_buy, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cforex_buy_avg_6
-    ,AVG(cforex_sell, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cforex_sell_avg_6
-    ,AVG(chomebanking_transacciones, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS chomebanking_transacciones_avg_6
-    ,AVG(cinversion1, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cinversion1_avg_6
-    ,AVG(cinversion2, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cinversion2_avg_6
-    ,AVG(cliente_antiguedad, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cliente_antiguedad_avg_6
-    ,AVG(cliente_edad, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cliente_edad_avg_6
-    ,AVG(cliente_vip, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cliente_vip_avg_6
-    ,AVG(cmobile_app_trx, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cmobile_app_trx_avg_6
-    ,AVG(cpagodeservicios, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cpagodeservicios_avg_6
-    ,AVG(cpagomiscuentas, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cpagomiscuentas_avg_6
-    ,AVG(cpayroll2_trx, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cpayroll2_trx_avg_6
-    ,AVG(cpayroll_trx, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cpayroll_trx_avg_6
-    ,AVG(cplazo_fijo, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cplazo_fijo_avg_6
-    ,AVG(cprestamos_hipotecarios, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cprestamos_hipotecarios_avg_6
-    ,AVG(cprestamos_personales, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cprestamos_personales_avg_6
-    ,AVG(cprestamos_prendarios, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cprestamos_prendarios_avg_6
-    ,AVG(cproductos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cproductos_avg_6
-    ,AVG(cseguro_accidentes_personales, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cseguro_accidentes_personales_avg_6
-    ,AVG(cseguro_auto, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cseguro_auto_avg_6
-    ,AVG(cseguro_vida, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cseguro_vida_avg_6
-    ,AVG(cseguro_vivienda, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS cseguro_vivienda_avg_6
-    ,AVG(ctarjeta_debito, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_debito_avg_6
-    ,AVG(ctarjeta_debito_transacciones, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_debito_transacciones_avg_6
-    ,AVG(ctarjeta_master, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_master_avg_6
-    ,AVG(ctarjeta_master_debitos_automaticos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_master_debitos_automaticos_avg_6
-    ,AVG(ctarjeta_master_descuentos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_master_descuentos_avg_6
-    ,AVG(ctarjeta_master_transacciones, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_master_transacciones_avg_6
-    ,AVG(ctarjeta_visa, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_visa_avg_6
-    ,AVG(ctarjeta_visa_debitos_automaticos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_visa_debitos_automaticos_avg_6
-    ,AVG(ctarjeta_visa_descuentos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_visa_descuentos_avg_6
-    ,AVG(ctarjeta_visa_transacciones, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctarjeta_visa_transacciones_avg_6
-    ,AVG(ctransferencias_emitidas, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctransferencias_emitidas_avg_6
-    ,AVG(ctransferencias_recibidas, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctransferencias_recibidas_avg_6
-    ,AVG(ctrx_quarter, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS ctrx_quarter_avg_6
-    ,AVG(internet, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS internet_avg_6
-    ,AVG(mactivos_margen, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mactivos_margen_avg_6
-    ,AVG(Master_cadelantosefectivo, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_cadelantosefectivo_avg_6
-    ,AVG(Master_cconsumos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_cconsumos_avg_6
-    ,AVG(Master_delinquency, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_delinquency_avg_6
-    ,AVG(Master_fechaalta, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_fechaalta_avg_6
-    ,AVG(Master_Finiciomora, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_Finiciomora_avg_6
-    ,AVG(Master_fultimo_cierre, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_fultimo_cierre_avg_6
-    ,AVG(Master_Fvencimiento, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_Fvencimiento_avg_6
-    ,AVG(Master_madelantodolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_madelantodolares_avg_6
-    ,AVG(Master_madelantopesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_madelantopesos_avg_6
-    ,AVG(Master_mconsumosdolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_mconsumosdolares_avg_6
-    ,AVG(Master_mconsumospesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_mconsumospesos_avg_6
-    ,AVG(Master_mconsumototal, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_mconsumototal_avg_6
-    ,AVG(Master_mfinanciacion_limite, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_mfinanciacion_limite_avg_6
-    ,AVG(Master_mlimitecompra, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_mlimitecompra_avg_6
-    ,AVG(Master_mpagado, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_mpagado_avg_6
-    ,AVG(Master_mpagominimo, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_mpagominimo_avg_6
-    ,AVG(Master_mpagosdolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_mpagosdolares_avg_6
-    ,AVG(Master_mpagospesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_mpagospesos_avg_6
-    ,AVG(Master_msaldodolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_msaldodolares_avg_6
-    ,AVG(Master_msaldopesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_msaldopesos_avg_6
-    ,AVG(Master_msaldototal, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_msaldototal_avg_6
-    ,AVG(Master_status, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Master_status_avg_6
-    ,AVG(matm, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS matm_avg_6
-    ,AVG(matm_other, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS matm_other_avg_6
-    ,AVG(mautoservicio, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mautoservicio_avg_6
-    ,AVG(mcaja_ahorro, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcaja_ahorro_avg_6
-    ,AVG(mcaja_ahorro_adicional, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcaja_ahorro_adicional_avg_6
-    ,AVG(mcaja_ahorro_dolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcaja_ahorro_dolares_avg_6
-    ,AVG(mcajeros_propios_descuentos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcajeros_propios_descuentos_avg_6
-    ,AVG(mcheques_depositados, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcheques_depositados_avg_6
-    ,AVG(mcheques_depositados_rechazados, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcheques_depositados_rechazados_avg_6
-    ,AVG(mcheques_emitidos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcheques_emitidos_avg_6
-    ,AVG(mcheques_emitidos_rechazados, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcheques_emitidos_rechazados_avg_6
-    ,AVG(mcomisiones, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcomisiones_avg_6
-    ,AVG(mcomisiones_mantenimiento, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcomisiones_mantenimiento_avg_6
-    ,AVG(mcomisiones_otras, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcomisiones_otras_avg_6
-    ,AVG(mcuenta_corriente, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcuenta_corriente_avg_6
-    ,AVG(mcuenta_corriente_adicional, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcuenta_corriente_adicional_avg_6
-    ,AVG(mcuenta_debitos_automaticos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcuenta_debitos_automaticos_avg_6
-    ,AVG(mcuentas_saldo, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mcuentas_saldo_avg_6
-    ,AVG(mextraccion_autoservicio, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mextraccion_autoservicio_avg_6
-    ,AVG(mforex_buy, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mforex_buy_avg_6
-    ,AVG(mforex_sell, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mforex_sell_avg_6
-    ,AVG(minversion1_dolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS minversion1_dolares_avg_6
-    ,AVG(minversion1_pesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS minversion1_pesos_avg_6
-    ,AVG(minversion2, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS minversion2_avg_6
-    ,AVG(mpagodeservicios, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mpagodeservicios_avg_6
-    ,AVG(mpagomiscuentas, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mpagomiscuentas_avg_6
-    ,AVG(mpasivos_margen, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mpasivos_margen_avg_6
-    ,AVG(mpayroll, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mpayroll_avg_6
-    ,AVG(mpayroll2, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mpayroll2_avg_6
-    ,AVG(mplazo_fijo_dolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mplazo_fijo_dolares_avg_6
-    ,AVG(mplazo_fijo_pesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mplazo_fijo_pesos_avg_6
-    ,AVG(mprestamos_hipotecarios, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mprestamos_hipotecarios_avg_6
-    ,AVG(mprestamos_personales, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mprestamos_personales_avg_6
-    ,AVG(mprestamos_prendarios, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mprestamos_prendarios_avg_6
-    ,AVG(mrentabilidad, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mrentabilidad_avg_6
-    ,AVG(mrentabilidad_annual, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mrentabilidad_annual_avg_6
-    ,AVG(mtarjeta_master_consumo, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mtarjeta_master_consumo_avg_6
-    ,AVG(mtarjeta_master_descuentos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mtarjeta_master_descuentos_avg_6
-    ,AVG(mtarjeta_visa_consumo, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mtarjeta_visa_consumo_avg_6
-    ,AVG(mtarjeta_visa_descuentos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mtarjeta_visa_descuentos_avg_6
-    ,AVG(mtransferencias_emitidas, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mtransferencias_emitidas_avg_6
-    ,AVG(mtransferencias_recibidas, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mtransferencias_recibidas_avg_6
-    ,AVG(mttarjeta_master_debitos_automaticos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mttarjeta_master_debitos_automaticos_avg_6
-    ,AVG(mttarjeta_visa_debitos_automaticos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS mttarjeta_visa_debitos_automaticos_avg_6
-    ,AVG(tcallcenter, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS tcallcenter_avg_6
-    ,AVG(tcuentas, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS tcuentas_avg_6
-    ,AVG(thomebanking, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS thomebanking_avg_6
-    ,AVG(tmobile_app, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS tmobile_app_avg_6
-    ,AVG(Visa_cadelantosefectivo, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_cadelantosefectivo_avg_6
-    ,AVG(Visa_cconsumos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_cconsumos_avg_6
-    ,AVG(Visa_delinquency, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_delinquency_avg_6
-    ,AVG(Visa_fechaalta, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_fechaalta_avg_6
-    ,AVG(Visa_Finiciomora, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_Finiciomora_avg_6
-    ,AVG(Visa_fultimo_cierre, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_fultimo_cierre_avg_6
-    ,AVG(Visa_Fvencimiento, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_Fvencimiento_avg_6
-    ,AVG(Visa_madelantodolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_madelantodolares_avg_6
-    ,AVG(Visa_madelantopesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_madelantopesos_avg_6
-    ,AVG(Visa_mconsumosdolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_mconsumosdolares_avg_6
-    ,AVG(Visa_mconsumospesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_mconsumospesos_avg_6
-    ,AVG(Visa_mconsumototal, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_mconsumototal_avg_6
-    ,AVG(Visa_mfinanciacion_limite, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_mfinanciacion_limite_avg_6
-    ,AVG(Visa_mlimitecompra, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_mlimitecompra_avg_6
-    ,AVG(Visa_mpagado, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_mpagado_avg_6
-    ,AVG(Visa_mpagominimo, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_mpagominimo_avg_6
-    ,AVG(Visa_mpagosdolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_mpagosdolares_avg_6
-    ,AVG(Visa_mpagospesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_mpagospesos_avg_6
-    ,AVG(Visa_msaldodolares, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_msaldodolares_avg_6
-    ,AVG(Visa_msaldopesos, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_msaldopesos_avg_6
-    ,AVG(Visa_msaldototal, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_msaldototal_avg_6
-    ,AVG(Visa_status, 6) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ASC ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS Visa_status_avg_6
+    ,AVG(active_quarter) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_active_quarter
+    ,AVG(cliente_vip) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cliente_vip
+    ,AVG(internet) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_internet
+    ,AVG(cliente_edad) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cliente_edad
+    ,AVG(cliente_antiguedad) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cliente_antiguedad
+    ,AVG(mrentabilidad) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mrentabilidad
+    ,AVG(mrentabilidad_annual) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mrentabilidad_annual
+    ,AVG(mcomisiones) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcomisiones
+    ,AVG(mactivos_margen) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mactivos_margen
+    ,AVG(mpasivos_margen) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mpasivos_margen
+     ,AVG(cproductos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cproductos
+     ,AVG(tcuentas) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_tcuentas
+     ,AVG(ccuenta_corriente) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccuenta_corriente
+     ,AVG(mcuenta_corriente_adicional) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcuenta_corriente_adicional
+     ,AVG(mcuenta_corriente) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcuenta_corriente
+     ,AVG(ccaja_ahorro) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccaja_ahorro
+     ,AVG(mcaja_ahorro) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcaja_ahorro
+     ,AVG(mcaja_ahorro_adicional) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcaja_ahorro_adicional
+     ,AVG(mcaja_ahorro_dolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcaja_ahorro_dolares
+     ,AVG(cdescubierto_preacordado) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cdescubierto_preacordado
+     ,AVG(mcuentas_saldo) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcuentas_saldo
+     ,AVG(ctarjeta_debito) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_debito
+     ,AVG(ctarjeta_debito_transacciones) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_debito_transacciones
+     ,AVG(mautoservicio) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mautoservicio
+     ,AVG(ctarjeta_visa) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_visa
+     ,AVG(ctarjeta_visa_transacciones) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_visa_transacciones
+     ,AVG(mtarjeta_visa_consumo) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mtarjeta_visa_consumo
+     ,AVG(ctarjeta_master) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_master
+     ,AVG(ctarjeta_master_transacciones) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_master_transacciones
+     ,AVG(mtarjeta_master_consumo) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mtarjeta_master_consumo
+     ,AVG(cprestamos_personales) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cprestamos_personales
+     ,AVG(mprestamos_personales) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mprestamos_personales
+     ,AVG(cprestamos_prendarios) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cprestamos_prendarios
+     ,AVG(mprestamos_prendarios) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mprestamos_prendarios
+     ,AVG(cprestamos_hipotecarios) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cprestamos_hipotecarios
+     ,AVG(mprestamos_hipotecarios) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mprestamos_hipotecarios
+     ,AVG(cplazo_fijo) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cplazo_fijo
+     ,AVG(mplazo_fijo_dolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mplazo_fijo_dolares
+     ,AVG(mplazo_fijo_pesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mplazo_fijo_pesos
+     ,AVG(cinversion1) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cinversion1
+     ,AVG(minversion1_pesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_minversion1_pesos
+     ,AVG(minversion1_dolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_minversion1_dolares
+     ,AVG(cinversion2) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cinversion2
+     ,AVG(minversion2) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_minversion2
+     ,AVG(cseguro_vida) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cseguro_vida
+     ,AVG(cseguro_auto) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cseguro_auto
+     ,AVG(cseguro_vivienda) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cseguro_vivienda
+     ,AVG(cseguro_accidentes_personales) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cseguro_accidentes_personales
+     ,AVG(ccaja_seguridad) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccaja_seguridad
+     ,AVG(cpayroll_trx) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cpayroll_trx
+     ,AVG(mpayroll) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mpayroll
+     ,AVG(mpayroll2) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mpayroll2
+     ,AVG(cpayroll2_trx) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cpayroll2_trx
+     ,AVG(ccuenta_debitos_automaticos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccuenta_debitos_automaticos
+     ,AVG(mcuenta_debitos_automaticos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcuenta_debitos_automaticos
+     ,AVG(ctarjeta_visa_debitos_automaticos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_visa_debitos_automaticos
+     ,AVG(mttarjeta_visa_debitos_automaticos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mttarjeta_visa_debitos_automaticos
+     ,AVG(ctarjeta_master_debitos_automaticos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_master_debitos_automaticos
+     ,AVG(mttarjeta_master_debitos_automaticos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mttarjeta_master_debitos_automaticos
+     ,AVG(cpagodeservicios) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cpagodeservicios
+     ,AVG(mpagodeservicios) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mpagodeservicios
+     ,AVG(cpagomiscuentas) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cpagomiscuentas
+     ,AVG(mpagomiscuentas) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mpagomiscuentas
+     ,AVG(ccajeros_propios_descuentos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccajeros_propios_descuentos
+     ,AVG(mcajeros_propios_descuentos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcajeros_propios_descuentos
+     ,AVG(ctarjeta_visa_descuentos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_visa_descuentos
+     ,AVG(mtarjeta_visa_descuentos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mtarjeta_visa_descuentos
+     ,AVG(ctarjeta_master_descuentos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctarjeta_master_descuentos
+     ,AVG(mtarjeta_master_descuentos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mtarjeta_master_descuentos
+     ,AVG(ccomisiones_mantenimiento) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccomisiones_mantenimiento
+     ,AVG(mcomisiones_mantenimiento) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcomisiones_mantenimiento
+     ,AVG(ccomisiones_otras) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccomisiones_otras
+     ,AVG(mcomisiones_otras) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcomisiones_otras
+     ,AVG(cforex) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cforex
+     ,AVG(cforex_buy) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cforex_buy
+     ,AVG(mforex_buy) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mforex_buy
+     ,AVG(cforex_sell) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cforex_sell
+     ,AVG(mforex_sell) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mforex_sell
+     ,AVG(ctransferencias_recibidas) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctransferencias_recibidas
+     ,AVG(mtransferencias_recibidas) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mtransferencias_recibidas
+     ,AVG(ctransferencias_emitidas) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctransferencias_emitidas
+     ,AVG(mtransferencias_emitidas) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mtransferencias_emitidas
+     ,AVG(cextraccion_autoservicio) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_cextraccion_autoservicio
+     ,AVG(mextraccion_autoservicio) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mextraccion_autoservicio
+     ,AVG(ccheques_depositados) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccheques_depositados
+     ,AVG(mcheques_depositados) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcheques_depositados
+     ,AVG(ccheques_emitidos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccheques_emitidos
+     ,AVG(mcheques_emitidos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcheques_emitidos
+     ,AVG(ccheques_depositados_rechazados) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccheques_depositados_rechazados
+     ,AVG(mcheques_depositados_rechazados) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcheques_depositados_rechazados
+     ,AVG(ccheques_emitidos_rechazados) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccheques_emitidos_rechazados
+     ,AVG(mcheques_emitidos_rechazados) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_mcheques_emitidos_rechazados
+     ,AVG(tcallcenter) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_tcallcenter
+     ,AVG(ccallcenter_transacciones) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccallcenter_transacciones
+     ,AVG(thomebanking) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_thomebanking
+     ,AVG(chomebanking_transacciones) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_chomebanking_transacciones
+     ,AVG(ccajas_transacciones) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccajas_transacciones
+     ,AVG(ccajas_consultas) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccajas_consultas
+     ,AVG(ccajas_depositos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccajas_depositos
+     ,AVG(ccajas_extracciones) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccajas_extracciones
+     ,AVG(ccajas_otras) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ccajas_otras
+     ,AVG(catm_trx) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_catm_trx
+     ,AVG(matm) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_matm
+     ,AVG(catm_trx_other) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_catm_trx_other
+     ,AVG(matm_other) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_matm_other
+     ,AVG(ctrx_quarter) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_ctrx_quarter
+     ,AVG(Master_delinquency) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_delinquency
+     ,AVG(Master_status) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_status
+     ,AVG(Master_mfinanciacion_limite) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_mfinanciacion_limite
+     ,AVG(Master_Fvencimiento) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_Fvencimiento
+     ,AVG(Master_Finiciomora) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_Finiciomora
+     ,AVG(Master_msaldototal) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_msaldototal
+     ,AVG(Master_msaldopesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_msaldopesos
+     ,AVG(Master_msaldodolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_msaldodolares
+     ,AVG(Master_mconsumospesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_mconsumospesos
+     ,AVG(Master_mconsumosdolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_mconsumosdolares
+     ,AVG(Master_mlimitecompra) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_mlimitecompra
+     ,AVG(Master_madelantopesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_madelantopesos
+     ,AVG(Master_madelantodolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_madelantodolares
+     ,AVG(Master_fultimo_cierre) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_fultimo_cierre
+     ,AVG(Master_mpagado) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_mpagado
+     ,AVG(Master_mpagospesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_mpagospesos
+     ,AVG(Master_mpagosdolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_mpagosdolares
+     ,AVG(Master_fechaalta) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_fechaalta
+     ,AVG(Master_mconsumototal) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_mconsumototal
+     ,AVG(Master_cconsumos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_cconsumos
+     ,AVG(Master_cadelantosefectivo) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_cadelantosefectivo
+     ,AVG(Master_mpagominimo) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Master_mpagominimo
+     ,AVG(Visa_delinquency) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_delinquency
+     ,AVG(Visa_status) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_status
+     ,AVG(Visa_mfinanciacion_limite) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_mfinanciacion_limite
+     ,AVG(Visa_Fvencimiento) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_Fvencimiento
+     ,AVG(Visa_Finiciomora) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_Finiciomora
+     ,AVG(Visa_msaldototal) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_msaldototal
+     ,AVG(Visa_msaldopesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_msaldopesos
+     ,AVG(Visa_msaldodolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_msaldodolares
+     ,AVG(Visa_mconsumospesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_mconsumospesos
+     ,AVG(Visa_mconsumosdolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_mconsumosdolares
+     ,AVG(Visa_mlimitecompra) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_mlimitecompra
+     ,AVG(Visa_madelantopesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_madelantopesos
+     ,AVG(Visa_madelantodolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_madelantodolares
+     ,AVG(Visa_fultimo_cierre) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_fultimo_cierre
+     ,AVG(Visa_mpagado) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_mpagado
+     ,AVG(Visa_mpagospesos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_mpagospesos
+     ,AVG(Visa_mpagosdolares) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_mpagosdolares
+     ,AVG(Visa_fechaalta) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_fechaalta
+     ,AVG(Visa_mconsumototal) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_mconsumototal
+     ,AVG(Visa_cconsumos) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_cconsumos
+     ,AVG(Visa_cadelantosefectivo) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_cadelantosefectivo
+     ,AVG(Visa_mpagominimo) OVER (PARTITION BY numero_de_cliente ORDER BY foto_mes ROWS BETWEEN 6 PRECEDING AND CURRENT ROW) AS avg_6_Visa_mpagominimo
 FROM competencia_03
