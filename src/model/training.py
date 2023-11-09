@@ -68,7 +68,6 @@ def objective(
         params_space,
         dtrain,
         callbacks=[
-            optuna.integration.LightGBMPruningCallback(trial, "auc", "valid"),
             early_stopper,
         ],
     )
