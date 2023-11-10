@@ -164,13 +164,9 @@ def create_clase_binaria(con: duckdb.DuckDBPyConnection, path_binaria: str) -> N
     )
 
 
-def transform(con: duckdb.DuckDBPyConnection, path_binaria: str, inflation: bool = True, features: bool = True) -> None:
-    if inflation:
-        adjust_inflation(con)
-
-    if features:
-        create_features(con)
-
+def transform(con: duckdb.DuckDBPyConnection, path_binaria: str) -> None:
+    adjust_inflation(con)
+    create_features(con)
     create_clase_ternaria(con)
     create_clase_binaria(con, path_binaria)
 

@@ -3,7 +3,6 @@ import logging.config
 import os
 
 import duckdb
-from sklearn.model_selection import train_test_split
 
 from src.constants import (
     MLFLOW_ARTIFACT_ROOT,
@@ -11,7 +10,6 @@ from src.constants import (
     PATH_CLASE_BINARIA,
     PATH_CRUDO,
     QUERY_DF_TRAIN,
-    RANDOM_STATE,
     RUN_ETL,
 )
 from src.model.training import training_loop
@@ -36,7 +34,7 @@ if __name__ == "__main__":
         logger.info("Extract - Finished")
 
         logger.info("Transform - Started")
-        transform(con, PATH_CLASE_BINARIA, False, True)
+        transform(con, PATH_CLASE_BINARIA)
         logger.info("Transform - Finished")
     else:
         logger.warning("Reading from %s - Transform will be skipped", PATH_CLASE_BINARIA)
@@ -46,21 +44,12 @@ if __name__ == "__main__":
         logger.info("Extract - Finished")
 
     logger.info("Preprocess for training - Started")
-    df_full = get_dataframe(con, QUERY_DF_TRAIN)
+    df_train = get_dataframe(con, QUERY_DF_TRAIN)
 
     logger.info("Closing connection to database")
     con.close()
 
-    logger.info("Splitting into train and validation")
-    df_full["stratify"] = df_full["clase_ternaria"].astype(str) + df_full["foto_mes"].astype(str)
-    df_train, df_valid = train_test_split(
-        df_full, test_size=0.05, random_state=RANDOM_STATE, stratify=df_full["stratify"]
-    )
-
-    df_train = df_train.drop(columns=["stratify"], axis=1)
-    df_valid = df_valid.drop(columns=["stratify"], axis=1)
     logger.info("Preprocess for training - Finished")
-
     logger.info("Training - Started")
-    model, run_name = training_loop(df_train, df_valid)
+    model, run_name = training_loop(df_train)
     logger.info("Training - Finished")
