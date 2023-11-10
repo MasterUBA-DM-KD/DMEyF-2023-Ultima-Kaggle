@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import os
-import re
 
 import duckdb
 from sklearn.model_selection import train_test_split
@@ -52,9 +51,6 @@ if __name__ == "__main__":
 
     logger.info("Closing connection to database")
     con.close()
-
-    logger.info("Cleaning column names")
-    df_full = df_full.rename(columns=lambda x: re.sub("[^A-Za-z0-9_]+", "", x))
 
     logger.info("Splitting into train and validation")
     df_full["stratify"] = df_full["clase_ternaria"].astype(str) + df_full["foto_mes"].astype(str)
