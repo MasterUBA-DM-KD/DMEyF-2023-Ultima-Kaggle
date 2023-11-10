@@ -54,7 +54,7 @@ def objective(
         "n_jobs": -1,
         "extra_trees": True,
         "extra_seed": RANDOM_STATE_EXTRA,
-        "max_depth": -1,
+        "max_depth": trial.suggest_int("max_depth", 2, 256),
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
@@ -110,7 +110,7 @@ def find_best_model(
     study.optimize(
         lambda trial: objective(trial, dataset_train, dataset_valid, X_valid, valid_ternaria),
         n_trials=N_TRIALS_OPTIMIZE,
-        n_jobs=3,
+        n_jobs=2,
         callbacks=[mlflow_callback],
         gc_after_trial=True,
     )

@@ -1,8 +1,10 @@
 import logging
 import logging.config
 import os
+import re
 
 import duckdb
+from sklearn.model_selection import train_test_split
 
 from src.constants import (
     MLFLOW_ARTIFACT_ROOT,
@@ -10,9 +12,8 @@ from src.constants import (
     PATH_CLASE_BINARIA,
     PATH_CLASE_TERNARIA,
     PATH_CRUDO,
-    QUERY_DF_TEST,
     QUERY_DF_TRAIN,
-    QUERY_DF_VALID,
+    RANDOM_STATE,
     RUN_ETL,
 )
 from src.model.training import training_loop
@@ -47,9 +48,16 @@ if __name__ == "__main__":
         logger.info("Extract - Finished")
 
     logger.info("Preprocess for training - Started")
-    df_train = get_dataframe(con, QUERY_DF_TRAIN)
-    df_valid = get_dataframe(con, QUERY_DF_VALID)
-    df_test = get_dataframe(con, QUERY_DF_TEST)
+    df_full = get_dataframe(con, QUERY_DF_TRAIN)
+    df_full = df_full.rename(columns=lambda x: re.sub("[^A-Za-z0-9_]+", "", x))
+
+    df_full["stratify"] = df_full["clase_ternaria"].astype(str) + df_full["foto_mes"].astype(str)
+    df_train, df_valid = train_test_split(
+        df_full, test_size=0.05, random_state=RANDOM_STATE, stratify=df_full["stratify"]
+    )
+
+    df_full = df_full.drop(columns=["stratify"], axis=1)
+    df_valid = df_valid.drop(columns=["stratify"], axis=1)
     logger.info("Preprocess for training - Finished")
 
     logger.info("Closing connection to database")
