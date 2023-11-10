@@ -5,12 +5,10 @@ import lightgbm as lgb
 import pandas as pd
 from lightgbm import LGBMClassifier
 
-from src.constants import BASE_PATH_PREDICTIONS, COLS_TO_DROP, EARLY_STOPPING_ROUNDS, SEEDS
+from src.constants import BASE_PATH_PREDICTIONS, COLS_TO_DROP, SEEDS
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-early_stopper = lgb.early_stopping(stopping_rounds=EARLY_STOPPING_ROUNDS, verbose=True)
 
 
 def predictions_per_seed(
@@ -46,7 +44,6 @@ def predictions_per_seed(
             eval_names=["train", "valid"],
             eval_metric="auc",
             init_model=model,
-            callbacks=[early_stopper],
         )
         logger.info("Prediction with seed %s", seed)
         preds = gbm.predict_proba(X_test, n_jobs=-1)

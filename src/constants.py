@@ -50,8 +50,6 @@ NFOLD = 5
 METRIC = "ganancia"
 N_TRIALS_OPTIMIZE = 25
 PRUNER_WARMUP_STEPS = 5
-NUM_BOOST_ROUND = 10000
-EARLY_STOPPING_ROUNDS = 60
 COLS_TO_DROP = ["clase_ternaria", "clase_binaria"]
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}
 

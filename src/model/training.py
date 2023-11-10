@@ -22,12 +22,10 @@ from sklearn.metrics import (
 
 from src.constants import (
     COLS_TO_DROP,
-    EARLY_STOPPING_ROUNDS,
     MATRIX_GANANCIA,
     METRIC,
     N_TRIALS_OPTIMIZE,
     NFOLD,
-    NUM_BOOST_ROUND,
     PRUNER_WARMUP_STEPS,
     RANDOM_STATE,
     RANDOM_STATE_EXTRA,
@@ -37,18 +35,16 @@ from src.constants import (
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-early_stopper = lgb.early_stopping(stopping_rounds=EARLY_STOPPING_ROUNDS, first_metric_only=True, verbose=True)
-
 
 def calculate_ganancia(preds: np.ndarray, data: lgb.Dataset) -> Tuple[str, float, bool]:
-    metric_name = "ganancia-ternaria"
+    metric_name = "ganancia"
     is_higher_better = True
 
     label = data.get_label()
     weights = data.get_weight()
 
     ganancia = pd.DataFrame({"preds": preds, "label": label, "weights": weights})
-    ganancia["preds"] = np.rint(ganancia["preds"])
+    ganancia["preds"] = preds
     ganancia["costo"] = ganancia["weights"].map(MATRIX_GANANCIA)
     ganancia["ganancia"] = ganancia["preds"] * ganancia["costo"]
     ganancia_total = float(ganancia["ganancia"].sum())
@@ -62,7 +58,7 @@ def objective(
 ) -> float:
     params_space = {
         "objective": "binary",
-        "metric": "ganancia",
+        "metric": "custom",
         "boosting_type": "gbdt",
         "n_jobs": -1,
         "verbosity": -1,
@@ -73,6 +69,7 @@ def objective(
         "feature_pre_filter": False,
         "seed": RANDOM_STATE,
         "extra_seed": RANDOM_STATE_EXTRA,
+        "num_boost_round": trial.suggest_int("num_boost_round", 50, 9999, 5),
         "max_depth": trial.suggest_int("max_depth", 2, 256),
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
@@ -90,15 +87,12 @@ def objective(
         dtrain,
         nfold=NFOLD,
         stratified=True,
-        num_boost_round=NUM_BOOST_ROUND,
         feval=calculate_ganancia,
         seed=RANDOM_STATE,
-        callbacks=[
-            optuna.integration.LightGBMPruningCallback(trial, metric=METRIC, valid_name="valid"),
-            early_stopper,
-        ],
+        callbacks=[optuna.integration.LightGBMPruningCallback(trial, metric=METRIC, valid_name="valid")],
     )
-    ganancia = eval_hist[f"{METRIC}-mean"][-1]
+
+    ganancia = eval_hist[f"valid {METRIC}-mean"][-1]
     ganancia_normalizada = ganancia * NFOLD
 
     return ganancia_normalizada
@@ -163,12 +157,10 @@ def training_loop(df_train: pd.DataFrame, fine_tune: bool = True) -> Tuple[Boost
             params,
             dataset_train,
             feval=calculate_ganancia,
-            num_boost_round=NUM_BOOST_ROUND,
-            callbacks=[early_stopper],
         )
 
         logger.info("Saving best model")
-        mlflow.lightgbm.log_model(best_model, "model")
+        mlflow.lightgbm.log_model(best_model, "model", input_example=X_train.loc[[0]])
 
         logger.info("Metrics - Training")
         log_metrics(best_model, X_train, y_train_binaria, "training")
@@ -192,9 +184,10 @@ def log_metrics(model: Booster, X: pd.DataFrame, y: pd.Series, label: str) -> No
     mlflow.log_metric(f"{label}_accuracy", acc)
     mlflow.log_metric(f"{label}_precision", prec)
     mlflow.log_metric(f"{label}_recall", rec)
+    mlflow.log_metric(f"{label}_recall", rec)
 
-    cm = confusion_matrix(y, preds, labels=model.classes_, normalize="true")
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=model.classes_)
+    cm = confusion_matrix(y, preds, labels=[0, 1], normalize="true")
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=[0, 1])
     fig = disp.plot(cmap="Blues").figure_
     plt.savefig(f"{label}_cm.png")
     mlflow.log_figure(fig, f"{label}_cm.png")
