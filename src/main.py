@@ -49,8 +49,14 @@ if __name__ == "__main__":
 
     logger.info("Preprocess for training - Started")
     df_full = get_dataframe(con, QUERY_DF_TRAIN)
+
+    logger.info("Closing connection to database")
+    con.close()
+
+    logger.info("Cleaning column names")
     df_full = df_full.rename(columns=lambda x: re.sub("[^A-Za-z0-9_]+", "", x))
 
+    logger.info("Splitting into train and validation")
     df_full["stratify"] = df_full["clase_ternaria"].astype(str) + df_full["foto_mes"].astype(str)
     df_train, df_valid = train_test_split(
         df_full, test_size=0.05, random_state=RANDOM_STATE, stratify=df_full["stratify"]
@@ -59,9 +65,6 @@ if __name__ == "__main__":
     df_train = df_train.drop(columns=["stratify"], axis=1)
     df_valid = df_valid.drop(columns=["stratify"], axis=1)
     logger.info("Preprocess for training - Finished")
-
-    logger.info("Closing connection to database")
-    con.close()
 
     logger.info("Training - Started")
     model, run_name = training_loop(df_train, df_valid)
