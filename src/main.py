@@ -56,7 +56,7 @@ if __name__ == "__main__":
         df_full, test_size=0.05, random_state=RANDOM_STATE, stratify=df_full["stratify"]
     )
 
-    df_full = df_full.drop(columns=["stratify"], axis=1)
+    df_train = df_train.drop(columns=["stratify"], axis=1)
     df_valid = df_valid.drop(columns=["stratify"], axis=1)
     logger.info("Preprocess for training - Finished")
 

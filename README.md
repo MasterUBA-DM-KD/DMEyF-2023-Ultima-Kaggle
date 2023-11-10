@@ -46,7 +46,7 @@ mlflow ui --backend-store-uri $MLFLOW_TRACKING_URI --default-artifact-root $MLFL
 The current pipeline requires a `N1` machine in `GCP`, at least 350GB of RAM and 16 vCPUs. Change any constant in `src/constants.py` if needed. The following command will start the pipeline:
 
 ```bash
-python -m src.main
+python3 -m src.main
 ```
 
 ### Upload predictions

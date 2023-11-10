@@ -110,7 +110,7 @@ def find_best_model(
     study.optimize(
         lambda trial: objective(trial, dataset_train, dataset_valid, X_valid, valid_ternaria),
         n_trials=N_TRIALS_OPTIMIZE,
-        n_jobs=2,
+        n_jobs=3,
         callbacks=[mlflow_callback],
         gc_after_trial=True,
     )
