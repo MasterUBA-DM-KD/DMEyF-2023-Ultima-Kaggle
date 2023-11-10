@@ -45,10 +45,12 @@ def objective(
 ) -> float:
     params_space = {
         "metric": "auc",
-        "objective": "binary",
+        "objective": "custom",
         "boosting_type": "gbdt",
         "force_row_wise": True,
         "feature_pre_filter": False,
+        "first_metric_only": True,
+        "boost_from_average": True,
         "verbosity": -1,
         "seed": RANDOM_STATE,
         "n_jobs": -1,

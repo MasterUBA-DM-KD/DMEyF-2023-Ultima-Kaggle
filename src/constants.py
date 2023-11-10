@@ -48,7 +48,7 @@ MOVING_AVG_FILES = [
 # TRAINING
 N_TRIALS_OPTIMIZE = 25
 PRUNER_WARMUP_STEPS = 5
-EARLY_STOPPING_ROUNDS = 10
+EARLY_STOPPING_ROUNDS = 60
 COLS_TO_DROP = ["clase_ternaria", "clase_binaria"]
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}
 
