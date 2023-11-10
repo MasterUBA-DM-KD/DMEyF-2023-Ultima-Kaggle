@@ -39,8 +39,9 @@ early_stopper = lgb.early_stopping(stopping_rounds=EARLY_STOPPING_ROUNDS, verbos
 def objective(
     trial: optuna.Trial,
     dtrain: lgb.Dataset,
-    X_train: pd.DataFrame,
-    ternaria: pd.DataFrame,
+    dvalid: lgb.Dataset,
+    X_valid: pd.DataFrame,
+    ternaria_for_ganancia: pd.DataFrame,
 ) -> float:
     params_space = {
         "metric": "auc",
@@ -53,6 +54,7 @@ def objective(
         "n_jobs": -1,
         "extra_trees": True,
         "extra_seed": RANDOM_STATE_EXTRA,
+        "max_depth": -1,
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
@@ -67,20 +69,25 @@ def objective(
     gbm = lgb.train(
         params_space,
         dtrain,
+        valid_sets=[dtrain, dvalid],
+        valid_names=["train", "valid"],
         callbacks=[
+            optuna.integration.LightGBMPruningCallback(trial, "auc", "valid"),
             early_stopper,
         ],
     )
 
-    preds = gbm.predict(X_train, n_jobs=-1)
-    ternaria["preds"] = np.rint(preds)
-    ternaria["ganancia"] = ternaria["preds"] * ternaria["weights"]
-    ganancia_total = float(ternaria["ganancia"].sum())
+    preds = gbm.predict(X_valid, n_jobs=-1)
+    ternaria_for_ganancia["preds"] = np.rint(preds)
+    ternaria_for_ganancia["ganancia"] = ternaria_for_ganancia["preds"] * ternaria_for_ganancia["weights"]
+    ganancia_total = float(ternaria_for_ganancia["ganancia"].sum())
 
     return ganancia_total
 
 
-def find_best_model(dataset_train: lgb.Dataset, X_train: pd.DataFrame, ternaria: pd.DataFrame) -> dict:
+def find_best_model(
+    dataset_train: lgb.Dataset, dataset_valid: lgb.Dataset, X_valid: pd.DataFrame, valid_ternaria: pd.DataFrame
+) -> dict:
     logger.info("Looking for best model")
     sampler = TPESampler(seed=RANDOM_STATE)
     pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
@@ -101,9 +108,9 @@ def find_best_model(dataset_train: lgb.Dataset, X_train: pd.DataFrame, ternaria:
         load_if_exists=True,
     )
     study.optimize(
-        lambda trial: objective(trial, dataset_train, X_train, ternaria),
+        lambda trial: objective(trial, dataset_train, dataset_valid, X_valid, valid_ternaria),
         n_trials=N_TRIALS_OPTIMIZE,
-        n_jobs=2,
+        n_jobs=3,
         callbacks=[mlflow_callback],
         gc_after_trial=True,
     )
@@ -111,16 +118,21 @@ def find_best_model(dataset_train: lgb.Dataset, X_train: pd.DataFrame, ternaria:
     return study.best_params
 
 
-def training_loop(df_train: pd.DataFrame, params: Optional[dict] = None) -> Tuple[LGBMClassifier, str]:
+def training_loop(
+    df_train: pd.DataFrame, df_valid: pd.DataFrame, params: Optional[dict] = None
+) -> Tuple[LGBMClassifier, str]:
     mlflow.lightgbm.autolog()
     logger.info("Starting training loop")
 
-    X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
-    y_train = df_train["clase_binaria"].copy()
+    valid_ternaria = df_valid["clase_ternaria"].copy()
+    valid_ternaria = valid_ternaria.to_frame()
+    valid_ternaria["weights"] = valid_ternaria["clase_ternaria"].map(MATRIX_GANANCIA)
 
-    ternaria = df_train["clase_ternaria"].copy()
-    ternaria = ternaria.to_frame()
-    ternaria["weights"] = ternaria["clase_ternaria"].map(MATRIX_GANANCIA)
+    X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
+    X_valid = df_valid.drop(columns=COLS_TO_DROP, axis=1).copy()
+
+    y_train = df_train["clase_binaria"].copy()
+    y_valid = df_valid["clase_binaria"].copy()
 
     weights = y_train.value_counts(normalize=True).min() / y_train.value_counts(normalize=True)
     train_weights = (
@@ -129,14 +141,22 @@ def training_loop(df_train: pd.DataFrame, params: Optional[dict] = None) -> Tupl
         .values
     )
 
+    weights = y_valid.value_counts(normalize=True).min() / y_valid.value_counts(normalize=True)
+    valid_weights = (
+        pd.DataFrame(y_valid.rename("old_target"))
+        .merge(weights, how="left", left_on="old_target", right_on=weights.index)
+        .values
+    )
+
     dataset_train = lgb.Dataset(X_train, label=y_train, weight=train_weights[:, 1])
+    dataset_valid = lgb.Dataset(X_valid, label=y_valid, reference=dataset_train, weight=valid_weights[:, 1])
 
     with mlflow.start_run() as _:
         run_name = mlflow.active_run().info.run_name
         logger.info("MLFlow Run %s - Started", run_name)
 
         if params is None:
-            params = find_best_model(dataset_train, X_train, ternaria)
+            params = find_best_model(dataset_train, dataset_valid, X_valid, valid_ternaria)
 
         logger.info("Re-training with best params")
         params["verbosity"] = -1
@@ -145,16 +165,24 @@ def training_loop(df_train: pd.DataFrame, params: Optional[dict] = None) -> Tupl
             X_train,
             y_train,
             eval_metric="auc",
-            eval_names=["train"],
-            eval_set=[(X_train, y_train)],
+            eval_names=["train", "valid"],
+            eval_set=[(X_train, y_train), (X_valid, y_valid)],
             callbacks=[early_stopper],
         )
+
+        preds = best_model.predict(X_valid, n_jobs=-1)
+        preds = np.rint(preds)
+        f_score = f1_score(y_valid, preds)
+        mlflow.log_metric("f-score", f_score)
 
         logger.info("Saving best model")
         mlflow.lightgbm.log_model(best_model, "model")
 
-        logger.info("Metrics")
+        logger.info("Metrics - Training")
         log_metrics(best_model, X_train, y_train, "training")
+
+        logger.info("Metrics - Validation")
+        log_metrics(best_model, X_valid, y_valid, "validation")
 
         logger.info("MLFlow Run %s - Finished", run_name)
 

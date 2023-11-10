@@ -12,6 +12,7 @@ from src.constants import (
     TEND_FILES,
     TEST_MONTH,
     TRAINING_MONTHS,
+    VALIDATION_MONTHS,
 )
 
 logger = logging.getLogger(__name__)
@@ -144,7 +145,7 @@ def create_clase_ternaria(con: duckdb.DuckDBPyConnection, path_ternaria: str) ->
 
 
 def create_clase_binaria(con: duckdb.DuckDBPyConnection, path_binaria: str) -> None:
-    in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + TEST_MONTH])
+    in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + VALIDATION_MONTHS + TEST_MONTH])
     logger.info("Create binaria")
     con.sql(
         f"""

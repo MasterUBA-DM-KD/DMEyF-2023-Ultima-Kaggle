@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import os
-import re
 
 import duckdb
 
@@ -11,7 +10,9 @@ from src.constants import (
     PATH_CLASE_BINARIA,
     PATH_CLASE_TERNARIA,
     PATH_CRUDO,
+    QUERY_DF_TEST,
     QUERY_DF_TRAIN,
+    QUERY_DF_VALID,
     RUN_ETL,
 )
 from src.model.training import training_loop
@@ -47,12 +48,13 @@ if __name__ == "__main__":
 
     logger.info("Preprocess for training - Started")
     df_train = get_dataframe(con, QUERY_DF_TRAIN)
-    df_train = df_train.rename(columns=lambda x: re.sub("[^A-Za-z0-9_]+", "", x))
+    df_valid = get_dataframe(con, QUERY_DF_VALID)
+    df_test = get_dataframe(con, QUERY_DF_TEST)
     logger.info("Preprocess for training - Finished")
 
     logger.info("Closing connection to database")
     con.close()
 
     logger.info("Training - Started")
-    model, run_name = training_loop(df_train)
+    model, run_name = training_loop(df_train, df_valid)
     logger.info("Training - Finished")
