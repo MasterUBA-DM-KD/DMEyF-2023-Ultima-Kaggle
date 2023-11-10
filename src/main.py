@@ -9,7 +9,6 @@ from src.constants import (
     MLFLOW_ARTIFACT_ROOT,
     MLFLOW_TRACKING_URI,
     PATH_CLASE_BINARIA,
-    PATH_CLASE_TERNARIA,
     PATH_CRUDO,
     QUERY_DF_TRAIN,
     RANDOM_STATE,
@@ -37,7 +36,7 @@ if __name__ == "__main__":
         logger.info("Extract - Finished")
 
         logger.info("Transform - Started")
-        transform(con, PATH_CLASE_TERNARIA, PATH_CLASE_BINARIA, False, True)
+        transform(con, PATH_CLASE_BINARIA, False, True)
         logger.info("Transform - Finished")
     else:
         logger.warning("Reading from %s - Transform will be skipped", PATH_CLASE_BINARIA)

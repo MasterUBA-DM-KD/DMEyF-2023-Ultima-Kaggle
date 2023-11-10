@@ -4,12 +4,12 @@ RANDOM_STATE = 42
 RANDOM_STATE_EXTRA = 101
 MLFLOW_TRACKING_URI = "sqlite:///database/mlruns.db"
 MLFLOW_ARTIFACT_ROOT = "gs://mlflow-artifacts-uribe/mlruns"
-MATRIX_GANANCIA = {"BAJA+2": 273000, "BAJA+1": -7000, "CONTINUA": -7000}
+WEIGHTS_TRAINING = {"BAJA+2": 1.0000002, "BAJA+1": 1.0000001, "CONTINUA": 1.0}
+MATRIX_GANANCIA = {1.0000002: 273000, 1.0000001: -7000, 1.0: -7000}
 SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
 
 # ETL
-DATABASE_PATH = "~/buckets/b1/database/competencia_03.duckdb"
-PATH_CRUDO = "~/buckets/b1/datasets/raw/competencia_03_crudo.parquet"
+PATH_CRUDO = "datasets/raw/competencia_03_small.parquet"
 PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"
 PATH_CLASE_BINARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_binaria.parquet"
 
@@ -88,25 +88,3 @@ QUERY_DF_TRAIN = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_tr
 
 in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
 QUERY_DF_TEST = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})"
-
-
-PARAMS_LGB = {
-    "metric": "auc",
-    "objective": "binary",
-    "boosting_type": "gbdt",
-    "force_col_wise": True,
-    "feature_pre_filter": False,
-    "verbosity": -1,
-    "seed": RANDOM_STATE,
-    "n_jobs": -1,
-    "bagging_fraction": 0.1,
-    "bagging_freq": 2,
-    "feature_fraction": 0.5,
-    "lambda_l1": 0.0035621591425357845,
-    "lambda_l2": 0.1354162723749174,
-    "learning_rate": 0.1497926694870291,
-    "max_depth": 10,
-    "min_data_in_leaf": 6600,
-    "min_gain_to_split": 3.4328502146787363,
-    "num_leaves": 11,
-}

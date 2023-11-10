@@ -87,7 +87,7 @@ def create_features(con: duckdb.DuckDBPyConnection) -> None:
         )
 
 
-def create_clase_ternaria(con: duckdb.DuckDBPyConnection, path_ternaria: str) -> None:
+def create_clase_ternaria(con: duckdb.DuckDBPyConnection) -> None:
     logger.info("Creating ranks")
     con.sql(
         """
@@ -134,14 +134,6 @@ def create_clase_ternaria(con: duckdb.DuckDBPyConnection, path_ternaria: str) ->
         """
     )
 
-    logger.info("Export terciaria %s", path_ternaria)
-    con.sql(
-        f"""
-            COPY competencia_03
-            TO '{path_ternaria}' (FORMAT PARQUET);
-            """
-    )
-
 
 def create_clase_binaria(con: duckdb.DuckDBPyConnection, path_binaria: str) -> None:
     in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + TEST_MONTH])
@@ -172,16 +164,14 @@ def create_clase_binaria(con: duckdb.DuckDBPyConnection, path_binaria: str) -> N
     )
 
 
-def transform(
-    con: duckdb.DuckDBPyConnection, path_ternaria: str, path_binaria: str, inflation: bool = True, features: bool = True
-) -> None:
+def transform(con: duckdb.DuckDBPyConnection, path_binaria: str, inflation: bool = True, features: bool = True) -> None:
     if inflation:
         adjust_inflation(con)
 
     if features:
         create_features(con)
 
-    create_clase_ternaria(con, path_ternaria)
+    create_clase_ternaria(con)
     create_clase_binaria(con, path_binaria)
 
 
