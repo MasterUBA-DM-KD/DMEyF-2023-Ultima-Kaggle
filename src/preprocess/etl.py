@@ -84,7 +84,7 @@ def create_features(con: duckdb.DuckDBPyConnection) -> None:
         )
 
 
-def load(con: duckdb.DuckDBPyConnection, path_binaria: str) -> None:
+def load(con: duckdb.DuckDBPyConnection, path_final: str) -> None:
     in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + TEST_MONTH])
     logger.info("Filter dataset to training and test months")
     con.sql(
@@ -98,11 +98,11 @@ def load(con: duckdb.DuckDBPyConnection, path_binaria: str) -> None:
                 """
     )
 
-    logger.info("Export final dataset %s", path_binaria)
+    logger.info("Export final dataset %s", path_final)
     con.sql(
         f"""
         COPY competencia_03
-        TO '{path_binaria}' (FORMAT PARQUET);
+        TO '{path_final}' (FORMAT PARQUET);
         """
     )
 

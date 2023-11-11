@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Tuple
+from typing import Any, Tuple
 
 import lightgbm as lgb
 import matplotlib.pyplot as plt
@@ -8,7 +8,7 @@ import mlflow.lightgbm
 import numpy as np
 import optuna
 import pandas as pd
-from lightgbm import Booster
+from lightgbm import LGBMClassifier
 from optuna.integration import MLflowCallback
 from optuna.samplers import TPESampler
 from sklearn.metrics import (
@@ -21,12 +21,15 @@ from sklearn.metrics import (
 )
 
 from src.constants import (
+    BASE_PATH_PREDICTIONS,
     COLS_TO_DROP,
     MATRIX_GANANCIA,
     N_TRIALS_OPTIMIZE,
+    PARAMS_LGBM,
     PRUNER_WARMUP_STEPS,
     RANDOM_STATE,
     RANDOM_STATE_EXTRA,
+    SEEDS,
     WEIGHTS_TRAINING,
 )
 
@@ -89,6 +92,8 @@ def objective(
     preds = gbm.predict(dtrain.get_data(), n_jobs=-1)
     _, ganancia, _ = calculate_ganancia(preds, dtrain)
 
+    mlflow.log_metric("ganancia", ganancia)
+
     return ganancia
 
 
@@ -123,11 +128,13 @@ def find_best_model(dataset_train: lgb.Dataset) -> dict:
     return study.best_params
 
 
-def training_loop(df_train: pd.DataFrame, fine_tune: bool = True) -> tuple[Booster, str]:
+def training_loop(df_train: pd.DataFrame, df_test: pd.DataFrame, fine_tune: bool = False) -> tuple[LGBMClassifier, Any]:
     mlflow.lightgbm.autolog()
     logger.info("Starting training loop")
 
     X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
+    X_test = df_test.drop(columns=COLS_TO_DROP, axis=1).copy()
+
     y_train_ternaria = df_train["clase_ternaria"].copy()
     y_train_binaria = df_train["clase_binaria"].copy()
 
@@ -136,36 +143,70 @@ def training_loop(df_train: pd.DataFrame, fine_tune: bool = True) -> tuple[Boost
 
     dataset_train = lgb.Dataset(X_train, label=y_train_binaria, weight=train_weights["weights"], free_raw_data=False)
 
+    final_preds = df_test["numero_de_cliente"].to_frame()
+
     with mlflow.start_run() as _:
         run_name = mlflow.active_run().info.run_name
         logger.info("MLFlow Run %s - Started", run_name)
 
         if fine_tune:
             params = find_best_model(dataset_train)
+        else:
+            params = PARAMS_LGBM
 
         logger.info("Re-training with best params")
         params["verbosity"] = -1
         params["n_jobs"] = -1
 
-        best_model = lgb.train(
-            params,
-            dataset_train,
-            feval=calculate_ganancia,
-        )
+        for seed in SEEDS:
+            logger.info("Training with seed %s", seed)
+            params["random_state"] = seed
 
-        y_pred = best_model.predict(X_train, n_jobs=-1)
+            gbm = lgb.LGBMClassifier(**params)
+            gbm.fit(
+                X=X_train,
+                y=y_train_binaria,
+            )
 
-        logger.info("Saving best model")
-        mlflow.lightgbm.log_model(best_model, "model", input_example=X_train.loc[[0]])
+            logger.info("Prediction with seed %s", seed)
+            y_pred = gbm.predict_proba(X_train, n_jobs=-1, num_iteration=gbm.best_iteration_)
+            y_pred = y_pred[:, 1]
 
-        logger.info("Metrics - Training")
-        log_metrics(y_train_binaria, y_pred, "training")
+            logger.info("Saving best model")
+            mlflow.lightgbm.log_model(gbm, "model", input_example=X_train.loc[[0]])
 
-        logger.info("MLFlow Run %s - Finished", run_name)
+            logger.info("Metrics - Training")
+            log_metrics(y_train_binaria, y_pred, "training")
 
+            logger.info("Prediction with seed %s", seed)
+            preds = gbm.predict_proba(X_test, n_jobs=-1, num_iteration=gbm.best_iteration_)
+            final_preds[f"seed_{seed}"] = preds[:, 1]
+
+        final_preds["Predicted"] = final_preds.iloc[:, 1:].mean(axis=1)
+
+        logger.info("Aggregating predictions - all seeds")
+        final_preds = final_preds.sort_values(by="Predicted", ascending=False)
+        final_preds = final_preds.reset_index(drop=True)
+        base_path = os.path.join(BASE_PATH_PREDICTIONS, run_name)
+        os.makedirs(base_path, exist_ok=True)
+        final_preds.to_csv(os.path.join(base_path, "predictions.csv"), index=False)
+
+        logger.info("Saving aggregated predictions")
+        for cut in range(5000, 20000, 500):
+            final_preds_cut = final_preds.copy()
+            final_preds_cut = final_preds_cut[["numero_de_cliente", "Predicted"]]
+            final_preds_cut.loc[0:cut, "Predicted"] = True
+            final_preds_cut.loc[cut:, "Predicted"] = False
+            out_path = os.path.join(base_path, f"{cut}.csv")
+            final_preds_cut.to_csv(out_path, index=False)
+
+        logger.info("Saved predictions to %s", base_path)
+        logger.info("Finished predictions per seed")
+
+    logger.info("MLFlow Run %s - Finished", run_name)
     mlflow.end_run()
 
-    return best_model, run_name
+    return gbm, run_name
 
 
 def log_metrics(y_true: pd.Series, y_pred: pd.Series, label: str) -> None:

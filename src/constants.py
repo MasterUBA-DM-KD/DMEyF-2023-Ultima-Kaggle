@@ -1,5 +1,5 @@
 # GENERAL PURPOSE
-RUN_ETL = True
+RUN_ETL = False
 RANDOM_STATE = 42
 RANDOM_STATE_EXTRA = 101
 MLFLOW_TRACKING_URI = "sqlite:///database/mlruns.db"
@@ -9,7 +9,8 @@ MATRIX_GANANCIA = {1.0000002: 273000, 1.0000001: -7000, 1.0: -7000}
 SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
 
 # ETL
-PATH_FINAL = "~/buckets/b1/datasets/processed/competencia_03.csv"
+PATH_FINAL_CSV = "~/buckets/b1/datasets/processed/competencia_03.csv"
+PATH_FINAL_PARQUET = "~/buckets/b1/datasets/processed/competencia_03.parquet"
 PATH_CRUDO = "~/buckets/b1/datasets/interim/competencia_03_crudo.parquet"
 PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"
 PATH_CLASE_BINARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_binaria.parquet"
@@ -90,3 +91,29 @@ QUERY_DF_TRAIN = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_tr
 
 in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
 QUERY_DF_TEST = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})"
+
+
+PARAMS_LGBM = {
+    "boosting": "gbdt",
+    "objective": "binary",
+    "metric": "custom",
+    "first_metric_only": True,
+    "boost_from_average": True,
+    "feature_pre_filter": False,
+    "force_row_wise": True,
+    "verbosity": -1,
+    "min_gain_to_split": 0.0,
+    "min_sum_hessian_in_leaf": 0.001,
+    "lambda_l1": 0.0,
+    "lambda_l2": 0.0,
+    "max_bin": 31,
+    "bagging_fraction": 1.0,
+    "pos_bagging_fraction": 1.0,
+    "neg_bagging_fraction": 1.0,
+    "is_unbalance": False,
+    "scale_pos_weight": 1.0,
+    "drop_rate": 0.1,
+    "max_drop": 50,
+    "skip_drop": 0.5,
+    "extra_trees": True,
+}
