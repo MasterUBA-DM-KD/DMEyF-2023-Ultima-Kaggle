@@ -69,7 +69,7 @@ def objective(
         "feature_pre_filter": False,
         "seed": RANDOM_STATE,
         "extra_seed": RANDOM_STATE_EXTRA,
-        "num_boost_round": trial.suggest_int("num_boost_round", 50, 9999, 5),
+        # "num_boost_round": trial.suggest_int("num_boost_round", 50, 9995, 5),
         "max_depth": trial.suggest_int("max_depth", 2, 256),
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
