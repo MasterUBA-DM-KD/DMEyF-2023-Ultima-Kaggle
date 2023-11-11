@@ -1,5 +1,5 @@
 # GENERAL PURPOSE
-RUN_ETL = False
+RUN_ETL = True
 RANDOM_STATE = 42
 RANDOM_STATE_EXTRA = 101
 MLFLOW_TRACKING_URI = "sqlite:///database/mlruns.db"
@@ -9,7 +9,7 @@ MATRIX_GANANCIA = {1.0000002: 273000, 1.0000001: -7000, 1.0: -7000}
 SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
 
 # ETL
-PATH_CRUDO = "datasets/raw/competencia_03_small.parquet"
+PATH_CRUDO = "~/buckets/b1/datasets/interim/competencia_03_crudo.parquet"
 PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"
 PATH_CLASE_BINARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_binaria.parquet"
 
