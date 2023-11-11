@@ -37,6 +37,7 @@ logger.setLevel(logging.INFO)
 
 
 def calculate_ganancia(preds: np.ndarray, data: lgb.Dataset) -> Tuple[str, float, bool]:
+    logger.info("Calculating ganancia")
     metric_name = "ganancia"
     is_higher_better = True
 
@@ -48,6 +49,8 @@ def calculate_ganancia(preds: np.ndarray, data: lgb.Dataset) -> Tuple[str, float
     ganancia["costo"] = ganancia["weights"].map(MATRIX_GANANCIA)
     ganancia["ganancia"] = ganancia["preds"] * ganancia["costo"]
     ganancia_total = float(ganancia["ganancia"].sum())
+
+    logger.info("Ganancia total: %s", ganancia_total)
 
     return metric_name, ganancia_total, is_higher_better
 
@@ -71,7 +74,7 @@ def objective(
         "lambda_l1": 0.0,
         "lambda_l2": 0.0,
         "max_bin": 31,
-        "num_boost_round": 9999,
+        # "num_boost_round": 9999,
         "seed": RANDOM_STATE,
         "extra_seed": RANDOM_STATE_EXTRA,
         # "num_boost_round": trial.suggest_int("num_boost_round", 50, 9995, 5),
@@ -126,7 +129,7 @@ def find_best_model(dataset_train: lgb.Dataset) -> dict:
     study.optimize(
         lambda trial: objective(trial, dataset_train),
         n_trials=N_TRIALS_OPTIMIZE,
-        n_jobs=2,
+        n_jobs=1,
         callbacks=[mlflow_callback],
         gc_after_trial=True,
     )
