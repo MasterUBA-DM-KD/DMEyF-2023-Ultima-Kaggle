@@ -25,6 +25,17 @@ periodo = @. div(df.foto_mes,100)*12 + df.foto_mes%100
 global last = nrow(df)
 
 for i in 1:last
+  if df.foto_mes[i] <= periodo_anteultimo &&  i < last && df.numero_de_cliente[i] != df.numero_de_cliente[i+1]
+          df.clase_ternaria[i] = "BAJA+1"
+  end
+
+  if df.foto_mes[i] < periodo_anteultimo &&  i+1 < last && df.numero_de_cliente[i] == df.numero_de_cliente[i+1] &&  periodo[i+1] == periodo[i] +1 &&
+        ( df.numero_de_cliente[i+1] != df.numero_de_cliente[i+2]  || df.numero_de_cliente[i+1] == df.numero_de_cliente[i+2] && periodo[i+2]  > periodo[i+1] +2)
+          df.clase_ternaria[i] = "BAJA+2"
+  end
+end
+
+for i in 1:last
   if coalesce(df.clase_ternaria[i], "")=="BAJA+2" &&  (i+1 < last) && (coalesce( df.clase_ternaria[i+1], "")=="CONTINUA") && (df.numero_de_cliente[i] == df.numero_de_cliente[i+1])
         df.clase_ternaria[i] = "CONTINUA"
   end
