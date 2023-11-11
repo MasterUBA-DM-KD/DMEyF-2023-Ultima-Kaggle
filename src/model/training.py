@@ -69,15 +69,15 @@ def objective(
         "extra_seed": RANDOM_STATE_EXTRA,
         "num_boost_round": trial.suggest_int("num_boost_round", 50, 500, 50),
         "max_depth": trial.suggest_int("max_depth", 2, 256),
-        "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1.5, log=True),
+        "learning_rate": trial.suggest_float("learning_rate", 1e-2, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
-        "num_leaves": trial.suggest_int("num_leaves", 2, 1024),
-        "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 200, 10000, step=100),
+        "num_leaves": trial.suggest_int("num_leaves", 16, 1024),
+        "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 1, 8000, step=100),
         "min_gain_to_split": trial.suggest_float("min_gain_to_split", 0, 15),
         "bagging_freq": trial.suggest_int("bagging_freq", 1, 7),
         "bagging_fraction": trial.suggest_float("bagging_fraction", 0.1, 0.9, step=0.1),
-        "feature_fraction": trial.suggest_float("feature_fraction", 0.1, 0.9, step=0.1),
+        "feature_fraction": trial.suggest_float("feature_fraction", 0.2, 1.0, step=0.1),
     }
 
     gbm = lgb.train(

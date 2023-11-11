@@ -9,6 +9,7 @@ MATRIX_GANANCIA = {1.0000002: 273000, 1.0000001: -7000, 1.0: -7000}
 SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
 
 # ETL
+PATH_FINAL = "~/buckets/b1/datasets/processed/competencia_03.csv"
 PATH_CRUDO = "~/buckets/b1/datasets/interim/competencia_03_crudo.parquet"
 PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"
 PATH_CLASE_BINARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_binaria.parquet"
@@ -48,27 +49,27 @@ MOVING_AVG_FILES = [
 # TRAINING
 NFOLD = 5
 METRIC = "ganancia"
-N_TRIALS_OPTIMIZE = 25
+N_TRIALS_OPTIMIZE = 10
 PRUNER_WARMUP_STEPS = 5
 COLS_TO_DROP = ["clase_ternaria", "clase_binaria"]
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}
 
 TRAINING_MONTHS = [
-    # 201901,
-    # 201902,
-    # 201903,
-    # 201904,
-    # 201905,
-    # 201906,
-    # 201907,
-    # 201908,
-    # 201908,
-    # 201909,
-    # 201910,
-    # 201911,
-    # 201912,
-    # 202001,
-    # 202002,
+    201901,
+    201902,
+    201903,
+    201904,
+    201905,
+    201906,
+    201907,
+    201908,
+    201908,
+    201909,
+    201910,
+    201911,
+    201912,
+    202001,
+    202002,
     202010,
     202011,
     202012,

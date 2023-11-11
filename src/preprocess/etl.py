@@ -84,27 +84,21 @@ def create_features(con: duckdb.DuckDBPyConnection) -> None:
         )
 
 
-def create_clase_binaria(con: duckdb.DuckDBPyConnection, path_binaria: str) -> None:
+def load(con: duckdb.DuckDBPyConnection, path_binaria: str) -> None:
     in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + TEST_MONTH])
-    logger.info("Create binaria")
+    logger.info("Filter dataset to training and test months")
     con.sql(
         f"""
                 CREATE OR REPLACE TABLE competencia_03 AS (
                     SELECT
-                        *,
-                        CASE
-                            WHEN clase_ternaria = 'BAJA+2' THEN 1
-                            WHEN clase_ternaria ='BAJA+1' THEN 1
-                            WHEN clase_ternaria = 'CONTINUA' THEN 0
-                            ELSE 0
-                        END AS clase_binaria
+                        *
                     FROM competencia_03
                     WHERE foto_mes IN ({in_clause_all})
                 );
                 """
     )
 
-    logger.info("Export binaria %s", path_binaria)
+    logger.info("Export final dataset %s", path_binaria)
     con.sql(
         f"""
         COPY competencia_03
@@ -113,17 +107,10 @@ def create_clase_binaria(con: duckdb.DuckDBPyConnection, path_binaria: str) -> N
     )
 
 
-def transform(con: duckdb.DuckDBPyConnection, path_binaria: str) -> None:
+def transform(con: duckdb.DuckDBPyConnection, path_final: str) -> None:
     adjust_inflation(con)
     create_features(con)
-    create_clase_binaria(con, path_binaria)
-
-
-def load(con: duckdb.DuckDBPyConnection, path_database: str) -> None:
-    logger.info("Exporting database")
-    con.sql(f"EXPORT DATABASE '{path_database}' (FORMAT PARQUET);")
-    logger.info("Closing database")
-    con.close()
+    load(con, path_final)
 
 
 def get_dataframe(con: duckdb.DuckDBPyConnection, query: str) -> pd.DataFrame:

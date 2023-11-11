@@ -4,16 +4,8 @@ import os
 
 import duckdb
 
-from src.constants import (
-    MLFLOW_ARTIFACT_ROOT,
-    MLFLOW_TRACKING_URI,
-    PATH_CLASE_BINARIA,
-    PATH_CRUDO,
-    QUERY_DF_TRAIN,
-    RUN_ETL,
-)
-from src.model.training import training_loop
-from src.preprocess.etl import extract, get_dataframe, transform
+from src.constants import MLFLOW_ARTIFACT_ROOT, MLFLOW_TRACKING_URI, PATH_CLASE_BINARIA, PATH_CRUDO, PATH_FINAL, RUN_ETL
+from src.preprocess.etl import extract, transform
 
 logging.basicConfig(format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
 logger = logging.getLogger(__name__)
@@ -34,7 +26,7 @@ if __name__ == "__main__":
         logger.info("Extract - Finished")
 
         logger.info("Transform - Started")
-        transform(con, PATH_CLASE_BINARIA)
+        transform(con, PATH_FINAL)
         logger.info("Transform - Finished")
     else:
         logger.warning("Reading from %s - Transform will be skipped", PATH_CLASE_BINARIA)
@@ -43,13 +35,13 @@ if __name__ == "__main__":
         extract(con, PATH_CLASE_BINARIA)
         logger.info("Extract - Finished")
 
-    logger.info("Preprocess for training - Started")
-    df_train = get_dataframe(con, QUERY_DF_TRAIN)
-
-    logger.info("Closing connection to database")
-    con.close()
-
-    logger.info("Preprocess for training - Finished")
-    logger.info("Training - Started")
-    model, run_name = training_loop(df_train)
-    logger.info("Training - Finished")
+    # logger.info("Preprocess for training - Started")
+    # df_train = get_dataframe(con, QUERY_DF_TRAIN)
+    #
+    # logger.info("Closing connection to database")
+    # con.close()
+    #
+    # logger.info("Preprocess for training - Finished")
+    # logger.info("Training - Started")
+    # model, run_name = training_loop(df_train)
+    # logger.info("Training - Finished")
