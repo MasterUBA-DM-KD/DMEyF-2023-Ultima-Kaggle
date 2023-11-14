@@ -54,6 +54,7 @@ if __name__ == "__main__":
     logger.info("Closing connection to database")
     con.close()
 
+    df_train["clase_binaria"] = df_train["clase_ternaria"].map({"BAJA+2": 1, "BAJA+1": 1, "CONTINUA": 0})
     logger.info("Preprocess for training - Finished")
     logger.info("Training - Started")
     training_loop(df_train)

@@ -42,6 +42,7 @@ def transform(
 ) -> None:
     logger.info("Transforming")
     create_clase_ternaria(con)
+    create_clase_binaria(con)
     if inflation:
         adjust_inflation(con)
     create_features(con, lag, delta_lag, moving_avg, trend)
@@ -196,9 +197,9 @@ def create_features(
 def create_feature(con: duckdb.DuckDBPyConnection, queries: List[str]) -> None:
     logger.info("Creating feature")
     for i in queries:
+        logger.info("Creating %s", i)
         with open(i) as f:
             query = f.read()
-            logger.info("Creating %s", query)
             con.sql(
                 f"""
                     CREATE OR REPLACE TABLE competencia_03 AS (
