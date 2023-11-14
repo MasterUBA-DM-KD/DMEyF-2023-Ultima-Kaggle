@@ -13,7 +13,7 @@ from src.constants import (
     RUN_ETL,
 )
 from src.model.training import training_loop
-from src.preprocess.etl import extract, get_dataframe, transform
+from src.preprocess.etl import extract, get_dataframe, load, transform
 
 logging.basicConfig(format="%(asctime)s - %(message)s", datefmt="%d-%b-%y %H:%M:%S")
 logger = logging.getLogger(__name__)
@@ -36,6 +36,10 @@ if __name__ == "__main__":
         logger.info("Transform - Started")
         transform(con)
         logger.info("Transform - Finished")
+
+        logger.info("Load - Started")
+        load(con, PATH_FINAL_PARQUET)
+        logger.info("Load - Finished")
     else:
         logger.warning("Reading from %s - Transform will be skipped", PATH_FINAL_PARQUET)
 
