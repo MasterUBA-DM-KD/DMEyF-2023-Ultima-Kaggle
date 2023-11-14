@@ -67,7 +67,6 @@ def training_loop(df_train: pd.DataFrame) -> None:
     model = lightgbm.train(
         best_params,
         dtrain,
-        feval=calculate_ganancia,
         callbacks=[log_evaluation(100)],
     )
 
