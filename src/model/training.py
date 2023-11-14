@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Tuple
 
 import lightgbm
@@ -6,6 +7,7 @@ import numpy as np
 import optuna.integration.lightgbm as lgb
 import pandas as pd
 from lightgbm import early_stopping, log_evaluation
+from optuna.integration import MLflowCallback
 
 from src.constants import COLS_TO_DROP, MATRIX_GANANCIA, NFOLD, PARAMS_LGBM, RANDOM_STATE, WEIGHTS_TRAINING
 
@@ -31,6 +33,14 @@ def calculate_ganancia(preds: np.ndarray, data: lightgbm.Dataset) -> Tuple[str, 
 
 def training_loop(df_train: pd.DataFrame) -> None:
     logger.info("Starting training loop")
+    mlflow_callback = MLflowCallback(
+        tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
+        metric_name="ganancia",
+        create_experiment=False,
+        mlflow_kwargs={
+            "nested": True,
+        },
+    )
 
     X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
 
@@ -51,6 +61,7 @@ def training_loop(df_train: pd.DataFrame) -> None:
         seed=RANDOM_STATE,
         feval=calculate_ganancia,
         optuna_seed=RANDOM_STATE,
+        optuna_callbacks=[mlflow_callback],
     )
 
     tuner.run()
