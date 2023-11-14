@@ -1,32 +1,14 @@
 import logging
-from typing import Tuple
 
 import lightgbm
-import numpy as np
 import optuna.integration.lightgbm as lgb
 import pandas as pd
 from lightgbm import log_evaluation
 
-from src.constants import COLS_TO_DROP, MATRIX_GANANCIA, NFOLD, PARAMS_LGBM, RANDOM_STATE
+from src.constants import COLS_TO_DROP, NFOLD, PARAMS_LGBM, RANDOM_STATE
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
-def calculate_ganancia(preds: np.ndarray, data: lightgbm.Dataset) -> Tuple[str, float, bool]:
-    metric_name = "ganancia"
-    is_higher_better = True
-
-    label = data.get_label()
-    weights = data.get_weight()
-
-    ganancia = pd.DataFrame({"preds": preds, "label": label, "weights": weights})
-    ganancia["preds"] = np.rint(preds)
-    ganancia["costo"] = ganancia["weights"].map(MATRIX_GANANCIA)
-    ganancia["ganancia"] = ganancia["preds"] * ganancia["costo"]
-    ganancia_total = float(ganancia["ganancia"].sum())
-
-    return metric_name, ganancia_total, is_higher_better
 
 
 def training_loop(df_train: pd.DataFrame) -> None:
@@ -34,11 +16,11 @@ def training_loop(df_train: pd.DataFrame) -> None:
 
     X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
 
-    y_train_ternaria = df_train["clase_ternaria"].copy()
-    y_train_ternaria = y_train_ternaria.map({"CONTINUA": 0, "BAJA+1": 1, "BAJA+2": 2})
-    # y_train_binaria = df_train["clase_binaria"].copy()
+    # y_train_ternaria = df_train["clase_ternaria"].copy()
+    # y_train_ternaria = y_train_ternaria.map({"CONTINUA": 0, "BAJA+1": 1, "BAJA+2": 2})
+    y_train_binaria = df_train["clase_binaria"].copy()
 
-    dtrain = lightgbm.Dataset(X_train, label=y_train_ternaria, free_raw_data=False)
+    dtrain = lightgbm.Dataset(X_train, label=y_train_binaria, free_raw_data=False)
 
     tuner = lgb.LightGBMTunerCV(
         PARAMS_LGBM,
