@@ -96,8 +96,8 @@ QUERY_DF_TEST = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_tes
 
 PARAMS_LGBM = {
     "boosting": "dart",
-    "objective": "binary",
-    "metric": "custom",
+    "objective": "multiclass",
+    "metric": "auc",
     "first_metric_only": True,
     "boost_from_average": True,
     "feature_pre_filter": False,
