@@ -1,5 +1,5 @@
 # GENERAL PURPOSE
-RUN_ETL = False
+RUN_ETL = True
 RANDOM_STATE = 42
 RANDOM_STATE_EXTRA = 101
 MLFLOW_TRACKING_URI = "sqlite:///database/mlruns.db"
@@ -9,11 +9,12 @@ MATRIX_GANANCIA = {1.0000002: 273000, 1.0000001: -7000, 1.0: -7000}
 SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
 
 # ETL
-PATH_FINAL_CSV = "~/buckets/b1/datasets/processed/competencia_03.csv"
-PATH_FINAL_PARQUET = "~/buckets/b1/datasets/processed/competencia_03.parquet"
 PATH_CRUDO = "~/buckets/b1/datasets/interim/competencia_03_crudo.parquet"
 PATH_CLASE_TERNARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_ternaria.parquet"
 PATH_CLASE_BINARIA = "~/buckets/b1/datasets/processed/competencia_03_clase_binaria.parquet"
+
+PATH_FINAL_CSV = "~/buckets/b1/datasets/processed/competencia_03.csv"
+PATH_FINAL_PARQUET = "~/buckets/b1/datasets/processed/competencia_03.parquet"
 
 PATH_SMALL = "datasets/raw/competencia_03_small.parquet"
 PATH_CLASE_TERNARIA_SMALL = "datasets/processed/competencia_03_clase_ternaria_small.parquet"
@@ -56,21 +57,21 @@ COLS_TO_DROP = ["clase_ternaria", "clase_binaria"]
 EVALUATOR_CONFIG = {"explainability_algorithm": "permutation", "metric_prefix": "evaluation_"}
 
 TRAINING_MONTHS = [
-    201901,
-    201902,
-    201903,
-    201904,
-    201905,
-    201906,
-    201907,
-    201908,
-    201908,
-    201909,
-    201910,
-    201911,
-    201912,
-    202001,
-    202002,
+    # 201901,
+    # 201902,
+    # 201903,
+    # 201904,
+    # 201905,
+    # 201906,
+    # 201907,
+    # 201908,
+    # 201908,
+    # 201909,
+    # 201910,
+    # 201911,
+    # 201912,
+    # 202001,
+    # 202002,
     202010,
     202011,
     202012,
@@ -94,7 +95,7 @@ QUERY_DF_TEST = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_tes
 
 
 PARAMS_LGBM = {
-    "boosting": "gbdt",
+    "boosting": "dart",
     "objective": "binary",
     "metric": "custom",
     "first_metric_only": True,
@@ -110,7 +111,7 @@ PARAMS_LGBM = {
     "bagging_fraction": 1.0,
     "pos_bagging_fraction": 1.0,
     "neg_bagging_fraction": 1.0,
-    "is_unbalance": False,
+    "is_unbalance": True,
     "scale_pos_weight": 1.0,
     "drop_rate": 0.1,
     "max_drop": 50,
