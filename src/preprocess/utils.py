@@ -1,4 +1,5 @@
 import logging
+import os.path
 from io import BytesIO
 from typing import List
 
@@ -13,6 +14,13 @@ logger.setLevel(logging.INFO)
 
 
 def get_argentina_inflation() -> None:
+    if os.path.isfile(PATH_INFLATION_FINAL):
+        logger.info("Inflation file already exists")
+    else:
+        download_and_process_inflation()
+
+
+def download_and_process_inflation() -> None:
     logger.info("Downloading inflation data")
     con = duckdb.connect(database=":memory:", read_only=False)
     response = requests.get(URL_INFLATION)
