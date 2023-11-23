@@ -1,25 +1,24 @@
 import logging
-from typing import List
 
 import duckdb
-import pandas as pd
 
 from src.constants import (
     DELTA_FILES,
-    INFLATION_FILE,
+    INFLATION,
     LAG_FILES,
     MOVING_AVG_FILES,
     PATH_INFLATION_FINAL,
-    TEND_FILES,
     TEST_MONTH,
     TRAINING_MONTHS,
+    TREND_FILES,
 )
+from src.preprocess.utils import create_feature, get_argentina_inflation
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def extract(con: duckdb.DuckDBPyConnection, path_parquet: str) -> None:
+def extract(con: duckdb.DuckDBPyConnection, path_parquet: str, where_clause: str = "1=1") -> None:
     logger.info("Extracting from %s", path_parquet)
     con.sql(
         f"""
@@ -27,6 +26,7 @@ def extract(con: duckdb.DuckDBPyConnection, path_parquet: str) -> None:
             SELECT
                 *
             FROM read_parquet('{path_parquet}')
+            WHERE {where_clause}
         );
         """
     )
@@ -36,30 +36,42 @@ def transform(
     con: duckdb.DuckDBPyConnection,
     inflation: bool = True,
     lag: bool = True,
-    delta_lag: bool = False,
-    moving_avg: bool = False,
-    trend: bool = False,
+    delta_lag: bool = True,
+    moving_avg: bool = True,
+    trend: bool = True,
 ) -> None:
-    logger.info("Transforming")
-    create_clase_ternaria(con)
-    create_clase_binaria(con)
+    logger.info("Creating targets")
+    create_targets(con)
     if inflation:
+        logger.info("Adjusting inflation")
         adjust_inflation(con)
-    create_features(con, lag, delta_lag, moving_avg, trend)
+    if lag:
+        logger.info("Creating lags")
+        create_feature(con, LAG_FILES)
+    if delta_lag:
+        logger.info("Creating delta lags")
+        create_feature(con, DELTA_FILES)
+    if moving_avg:
+        logger.info("Creating moving averages")
+        create_feature(con, MOVING_AVG_FILES)
+    if trend:
+        logger.info("Creating trend")
+        create_feature(con, TREND_FILES)
 
 
-def load(con: duckdb.DuckDBPyConnection, path_final: str) -> None:
+def load(con: duckdb.DuckDBPyConnection, path_final: str, where_clause: str = "1=1") -> None:
     in_clause_all = ", ".join([str(i) for i in TRAINING_MONTHS + TEST_MONTH])
     logger.info("Filter dataset to training and test months")
     con.sql(
         f"""
-                CREATE OR REPLACE TABLE competencia_03 AS (
-                    SELECT
-                        *
-                    FROM competencia_03
-                    WHERE foto_mes IN ({in_clause_all})
-                );
-                """
+        CREATE OR REPLACE TABLE competencia_03 AS (
+            SELECT
+                *
+            FROM competencia_03
+            WHERE {where_clause}
+            -- foto_mes IN ({in_clause_all})
+        );
+        """
     )
 
     logger.info("Export final dataset %s", path_final)
@@ -71,7 +83,8 @@ def load(con: duckdb.DuckDBPyConnection, path_final: str) -> None:
     )
 
 
-def create_clase_ternaria(con: duckdb.DuckDBPyConnection) -> None:
+def create_targets(con: duckdb.DuckDBPyConnection) -> None:
+    get_argentina_inflation()
     logger.info("Creating ranks")
     con.sql(
         """
@@ -118,8 +131,6 @@ def create_clase_ternaria(con: duckdb.DuckDBPyConnection) -> None:
         """
     )
 
-
-def create_clase_binaria(con: duckdb.DuckDBPyConnection) -> None:
     logger.info("Creating binary class")
     con.sql(
         """
@@ -164,7 +175,7 @@ def adjust_inflation(con: duckdb.DuckDBPyConnection) -> None:
         """
     )
 
-    with open(INFLATION_FILE) as f:
+    with open(INFLATION) as f:
         query = f.read()
         con.sql(f"{query}")
 
@@ -174,41 +185,3 @@ def adjust_inflation(con: duckdb.DuckDBPyConnection) -> None:
         DROP TABLE arg_inflation;
         """
     )
-
-
-def create_features(
-    con: duckdb.DuckDBPyConnection,
-    lag: bool = True,
-    delta_lag: bool = True,
-    moving_avg: bool = False,
-    trend: bool = False,
-) -> None:
-    logger.info("Creating features")
-    if lag:
-        create_feature(con, LAG_FILES)
-    if delta_lag:
-        create_feature(con, DELTA_FILES)
-    if moving_avg:
-        create_feature(con, MOVING_AVG_FILES)
-    if trend:
-        create_feature(con, TEND_FILES)
-
-
-def create_feature(con: duckdb.DuckDBPyConnection, queries: List[str]) -> None:
-    logger.info("Creating feature")
-    for i in queries:
-        logger.info("Creating %s", i)
-        with open(i) as f:
-            query = f.read()
-            con.sql(
-                f"""
-                    CREATE OR REPLACE TABLE competencia_03 AS (
-                        {query}
-                    );
-                """
-            )
-
-
-def get_dataframe(con: duckdb.DuckDBPyConnection, query: str) -> pd.DataFrame:
-    logger.info("Querying and converting to dataframe")
-    return con.sql(query).to_df()

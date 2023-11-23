@@ -1,5 +1,6 @@
 import logging
 from io import BytesIO
+from typing import List
 
 import duckdb
 import pandas as pd
@@ -61,7 +62,7 @@ def get_argentina_inflation() -> None:
                         SELECT
                             indice_inflacion
                         FROM arg_inflation
-                        WHERE foto_mes = 202107) / indice_inflacion
+                        WHERE foto_mes = 202109) / indice_inflacion
                 ) AS inflacion_acumulada
             FROM arg_inflation
         )
@@ -83,3 +84,23 @@ def get_argentina_inflation() -> None:
     )
 
     con.close()
+
+
+def create_feature(con: duckdb.DuckDBPyConnection, queries: List[str]) -> None:
+    logger.info("Creating feature")
+    for i in queries:
+        logger.info("Creating %s", i)
+        with open(i) as f:
+            query = f.read()
+            con.sql(
+                f"""
+                    CREATE OR REPLACE TABLE competencia_03 AS (
+                        {query}
+                    );
+                """
+            )
+
+
+def get_dataframe(con: duckdb.DuckDBPyConnection, query: str) -> pd.DataFrame:
+    logger.info("Querying and converting to dataframe")
+    return con.sql(query).to_df()
