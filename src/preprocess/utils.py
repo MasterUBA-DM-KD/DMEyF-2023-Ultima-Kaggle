@@ -79,7 +79,7 @@ def get_argentina_inflation() -> None:
     con.sql(
         f"""
         COPY arg_inflation
-        TO '{PATH_INFLATION_FINAL}' (HEADER TRUE, DELIMITER ',');
+        TO '{PATH_INFLATION_FINAL}' (FORMAT PARQUET);
         """
     )
 
