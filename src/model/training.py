@@ -3,6 +3,7 @@ import os
 from typing import Tuple
 
 import lightgbm
+import mlflow
 import numpy as np
 import optuna
 import optuna.integration.lightgbm as lgb
@@ -50,6 +51,7 @@ def objective(
         "metric": "custom",
         "n_jobs": -1,
         "verbosity": -1,
+        "boosting_type": "gbdt",
         "force_row_wise": True,
         "zero_as_missing": True,
         "first_metric_only": True,
@@ -58,7 +60,6 @@ def objective(
         "seed": RANDOM_STATE,
         "extra_seed": RANDOM_STATE_EXTRA,
         "extra_trees": trial.suggest_categorical("extra_trees", [True, False]),
-        "boosting_type": trial.suggest_categorical("boosting_type", ["gbdt", "dart"]),
         "num_boost_round": trial.suggest_int("num_boost_round", 50, 500, 50),
         "max_depth": trial.suggest_int("max_depth", 2, 256),
         "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1.5, log=True),
@@ -107,7 +108,7 @@ def find_best_model(dataset_train: lgb.Dataset) -> dict:
     study.optimize(
         lambda trial: objective(trial, dataset_train),
         n_trials=N_TRIALS_OPTIMIZE,
-        n_jobs=1,
+        n_jobs=2,
         callbacks=[mlflow_callback],
         gc_after_trial=True,
     )
@@ -119,16 +120,19 @@ def find_best_model(dataset_train: lgb.Dataset) -> dict:
 
 def training_loop(df_train: pd.DataFrame) -> dict:
     logger.info("Starting training loop")
+    mlflow.lightgbm.autolog()
+    with mlflow.start_run(nested=True):
+        X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
+        y_train_ternaria = df_train["clase_ternaria"].copy()
+        y_train_binaria = df_train["clase_binaria"].copy()
 
-    X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
-    y_train_ternaria = df_train["clase_ternaria"].copy()
-    y_train_binaria = df_train["clase_binaria"].copy()
+        train_weights = y_train_ternaria.to_frame()
+        train_weights["weights"] = train_weights["clase_ternaria"].map(WEIGHTS_TRAINING)
 
-    train_weights = y_train_ternaria.to_frame()
-    train_weights["weights"] = train_weights["clase_ternaria"].map(WEIGHTS_TRAINING)
+        dataset_train = lgb.Dataset(
+            X_train, label=y_train_binaria, weight=train_weights["weights"], free_raw_data=False
+        )
 
-    dataset_train = lgb.Dataset(X_train, label=y_train_binaria, weight=train_weights["weights"], free_raw_data=False)
+        params = find_best_model(dataset_train)
 
-    params = find_best_model(dataset_train)
-
-    return params
+        return params

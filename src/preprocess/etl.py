@@ -43,7 +43,6 @@ def transform(
     logger.info("Creating targets")
     create_targets(con)
     if inflation:
-        logger.info("Adjusting inflation")
         adjust_inflation(con)
     if lag:
         logger.info("Creating lags")
