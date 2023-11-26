@@ -46,20 +46,20 @@ MOVING_AVG_FILES = [
 # TRAINING
 NFOLD = 5
 METRIC = "ganancia"
-N_TRIALS_OPTIMIZE = 50
+N_TRIALS_OPTIMIZE = 25
 PRUNER_WARMUP_STEPS = 15
 COLS_TO_DROP = ["clase_ternaria", "clase_binaria", "foto_mes", "clase_ternaria:1"]
 COST_ENVIO = {1.0000002: 273000, 1.0000001: -7000, 1.0: -7000}
 WEIGHTS_TRAINING = {"BAJA+2": 1.0000002, "BAJA+1": 1.0000001, "CONTINUA": 1.0}
 
 TRAINING_MONTHS = [
-    201901,
-    201902,
-    201903,
-    201904,
-    201905,
-    201906,
-    201907,
+    # 201901,
+    # 201902,
+    # 201903,
+    # 201904,
+    # 201905,
+    # 201906,
+    # 201907,
     201908,
     201908,
     201909,

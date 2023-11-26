@@ -113,7 +113,7 @@ def find_best_model(dataset_train: lgb.Dataset) -> Booster:
     study.optimize(
         lambda trial: objective(trial, dataset_train),
         n_trials=N_TRIALS_OPTIMIZE,
-        n_jobs=1,
+        n_jobs=2,
         callbacks=[mlflow_callback, callback],
         gc_after_trial=True,
     )
