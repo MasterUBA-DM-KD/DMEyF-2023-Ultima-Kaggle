@@ -69,7 +69,7 @@ def objective(
         "extra_trees": trial.suggest_categorical("extra_trees", [True, False]),
         "num_boost_round": trial.suggest_int("num_boost_round", 50, 1000, 50),
         "max_depth": trial.suggest_int("max_depth", 2, 256),
-        "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1.5, log=True),
+        "learning_rate": trial.suggest_float("learning_rate", 1e-2, 1.5, log=True),
         "lambda_l1": trial.suggest_float("lambda_l1", 1e-8, 10.0, log=True),
         "lambda_l2": trial.suggest_float("lambda_l2", 1e-8, 10.0, log=True),
         "num_leaves": trial.suggest_int("num_leaves", 2, 1024),

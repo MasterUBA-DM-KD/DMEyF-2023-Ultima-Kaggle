@@ -43,9 +43,7 @@ if __name__ == "__main__":
 
     logger.info("Preprocess for training - Started")
     df_train = get_dataframe(con, QUERY_DF_TRAIN)
-    df_train = df_train.drop(["clase_ternaria:1"], axis=1)
     df_test = get_dataframe(con, QUERY_DF_TEST)
-    df_test = df_test.drop(["clase_ternaria:1"], axis=1)
 
     logger.info("Closing connection to database")
     con.close()
