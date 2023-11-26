@@ -35,7 +35,7 @@ def calculate_ganancia(preds: np.ndarray, data: lgb.Dataset) -> Tuple[str, float
     label = data.get_label()
     weights = data.get_weight()
 
-    ganancia = pd.DataFrame({"preds": np.rint(preds), "label": label, "weights": weights})
+    ganancia = pd.DataFrame({"preds": preds, "label": label, "weights": weights})
     ganancia["costo"] = ganancia["weights"].map(COST_ENVIO)
     ganancia["ganancia"] = ganancia["preds"] * ganancia["costo"]
     ganancia_total = float(ganancia["ganancia"].sum())
