@@ -4,7 +4,8 @@ import os
 
 import duckdb
 
-from src.constants import MLFLOW_TRACKING_URI, PATH_CRUDO, PATH_FINAL_PARQUET, QUERY_DF_TRAIN, RUN_ETL
+from src.constants import MLFLOW_TRACKING_URI, PATH_CRUDO, PATH_FINAL_PARQUET, QUERY_DF_TEST, QUERY_DF_TRAIN, RUN_ETL
+from src.model.inference import predictions_per_seed
 from src.model.training import training_loop
 from src.preprocess.etl import extract, load, transform
 from src.preprocess.utils import get_dataframe
@@ -43,7 +44,8 @@ if __name__ == "__main__":
     logger.info("Preprocess for training - Started")
     df_train = get_dataframe(con, QUERY_DF_TRAIN)
     df_train = df_train.drop(["clase_ternaria:1"], axis=1)
-    # df_test = get_dataframe(con, QUERY_DF_TEST)
+    df_test = get_dataframe(con, QUERY_DF_TEST)
+    df_test = df_test.drop(["clase_ternaria:1"], axis=1)
 
     logger.info("Closing connection to database")
     con.close()
@@ -51,5 +53,6 @@ if __name__ == "__main__":
     df_train["clase_binaria"] = df_train["clase_ternaria"].map({"BAJA+2": 1, "BAJA+1": 1, "CONTINUA": 0})
     logger.info("Preprocess for training - Finished")
     logger.info("Training - Started")
-    training_loop(df_train)
+    best_model, run_name = training_loop(df_train)
+    predictions_per_seed(df_train, best_model, run_name)
     logger.info("Training - Finished")

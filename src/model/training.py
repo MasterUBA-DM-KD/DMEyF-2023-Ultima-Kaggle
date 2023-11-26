@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from typing import Tuple
@@ -8,6 +9,7 @@ import numpy as np
 import optuna
 import optuna.integration.lightgbm as lgb
 import pandas as pd
+from lightgbm import Booster
 from optuna.integration.mlflow import MLflowCallback
 from optuna.samplers import TPESampler
 
@@ -33,13 +35,17 @@ def calculate_ganancia(preds: np.ndarray, data: lgb.Dataset) -> Tuple[str, float
     label = data.get_label()
     weights = data.get_weight()
 
-    ganancia = pd.DataFrame({"preds": preds, "label": label, "weights": weights})
-    ganancia["preds"] = preds
+    ganancia = pd.DataFrame({"preds": np.rint(preds), "label": label, "weights": weights})
     ganancia["costo"] = ganancia["weights"].map(COST_ENVIO)
     ganancia["ganancia"] = ganancia["preds"] * ganancia["costo"]
     ganancia_total = float(ganancia["ganancia"].sum())
 
     return metric_name, ganancia_total, is_higher_better
+
+
+def callback(study, trial):
+    if study.best_trial.number == trial.number:
+        study.set_user_attr(key="best_booster", value=trial.user_attrs["best_booster"])
 
 
 def objective(
@@ -74,11 +80,9 @@ def objective(
         "feature_fraction": trial.suggest_float("feature_fraction", 0.1, 0.9, step=0.1),
     }
 
-    gbm = lightgbm.train(
-        params_space,
-        dtrain,
-        feval=calculate_ganancia,
-    )
+    gbm = lightgbm.train(params_space, dtrain, feval=calculate_ganancia)
+
+    trial.set_user_attr(key="best_booster", value=gbm)
 
     preds = gbm.predict(dtrain.get_data(), n_jobs=-1)
     _, ganancia, _ = calculate_ganancia(preds, dtrain)
@@ -86,14 +90,14 @@ def objective(
     return ganancia
 
 
-def find_best_model(dataset_train: lgb.Dataset) -> dict:
+def find_best_model(dataset_train: lgb.Dataset) -> Booster:
     logger.info("Looking for best model")
     sampler = TPESampler(seed=RANDOM_STATE)
     pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
     mlflow_callback = MLflowCallback(
         tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
         metric_name=METRIC,
-        create_experiment=True,
+        create_experiment=False,
         mlflow_kwargs={
             "nested": True,
         },
@@ -109,20 +113,22 @@ def find_best_model(dataset_train: lgb.Dataset) -> dict:
     study.optimize(
         lambda trial: objective(trial, dataset_train),
         n_trials=N_TRIALS_OPTIMIZE,
-        n_jobs=2,
-        callbacks=[mlflow_callback],
+        n_jobs=1,
+        callbacks=[mlflow_callback, callback],
         gc_after_trial=True,
     )
 
-    best_trial = study.best_trial
+    best_model = study.user_attrs["best_booster"]
 
-    return best_trial.params
+    return best_model
 
 
-def training_loop(df_train: pd.DataFrame) -> dict:
+def training_loop(df_train: pd.DataFrame) -> Tuple[Booster, str]:
     logger.info("Starting training loop")
+    mlflow.set_experiment("Fine-Tune")
     mlflow.lightgbm.autolog()
     with mlflow.start_run(nested=True):
+        run_name = mlflow.active_run().info.run_name
         X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
         y_train_ternaria = df_train["clase_ternaria"].copy()
         y_train_binaria = df_train["clase_binaria"].copy()
@@ -134,6 +140,17 @@ def training_loop(df_train: pd.DataFrame) -> dict:
             X_train, label=y_train_binaria, weight=train_weights["weights"], free_raw_data=False
         )
 
-        params = find_best_model(dataset_train)
+        best_model = find_best_model(dataset_train)
 
-        return params
+        params = best_model.params
+
+        # log model parameters as artifact
+        with open("best_parameters.json", "w") as outfile:
+            json.dump(params, outfile)
+
+        mlflow.log_artifact("best_parameters.json", "best_model")
+        mlflow.lightgbm.log_model(best_model, "best_model", input_example=X_train.loc[[0]])
+
+    mlflow.end_run()
+
+    return best_model, run_name

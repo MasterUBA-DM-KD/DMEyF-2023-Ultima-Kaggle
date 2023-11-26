@@ -8,7 +8,7 @@ SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
 MLFLOW_TRACKING_URI = "http://34.172.84.47:5000/"
 
 # PATHS
-PATH_CRUDO = "~/buckets/b1/datasets/interim/competencia_03_crudo.parquet"
+PATH_CRUDO = "~/buckets/b1/datasets/raw/competencia_03_crudo.parquet"
 PATH_FINAL_PARQUET = "~/buckets/b1/datasets/processed/competencia_03.parquet"
 DATABASE_PATH = "database/competencia_03.db"
 OPTUNA_STORAGE = "sqlite:///database/optuna.db"
@@ -46,9 +46,9 @@ MOVING_AVG_FILES = [
 # TRAINING
 NFOLD = 5
 METRIC = "ganancia"
-N_TRIALS_OPTIMIZE = 1
-PRUNER_WARMUP_STEPS = 5
-COLS_TO_DROP = ["clase_ternaria", "clase_binaria", "foto_mes"]
+N_TRIALS_OPTIMIZE = 100
+PRUNER_WARMUP_STEPS = 10
+COLS_TO_DROP = ["clase_ternaria", "clase_binaria", "foto_mes", "clase_ternaria:1"]
 COST_ENVIO = {1.0000002: 273000, 1.0000001: -7000, 1.0: -7000}
 WEIGHTS_TRAINING = {"BAJA+2": 1.0000002, "BAJA+1": 1.0000001, "CONTINUA": 1.0}
 
@@ -64,8 +64,8 @@ TRAINING_MONTHS = [
     # 201908,
     # 201909,
     # 201910,
-    # 201911,
-    # 201912,
+    201911,
+    201912,
     202001,
     202002,
     202003,

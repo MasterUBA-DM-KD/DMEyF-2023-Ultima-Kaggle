@@ -1,9 +1,8 @@
 import logging
 import os
 
-import lightgbm as lgb
 import pandas as pd
-from lightgbm import LGBMClassifier
+from lightgbm import Booster
 
 from src.constants import BASE_PATH_PREDICTIONS, COLS_TO_DROP, SEEDS
 
@@ -11,43 +10,22 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-def predictions_per_seed(
-    df_train: pd.DataFrame, df_valid: pd.DataFrame, df_test: pd.DataFrame, model: LGBMClassifier, run_name: str
-) -> None:
+def predictions_per_seed(df_test: pd.DataFrame, model: Booster, run_name: str) -> None:
     logger.info("Starting predictions per seed")
+
     base_path = os.path.join(BASE_PATH_PREDICTIONS, run_name)
     os.makedirs(base_path, exist_ok=True)
 
-    X_train = df_train.drop(columns=COLS_TO_DROP, axis=1).copy()
-    X_valid = df_valid.drop(columns=COLS_TO_DROP, axis=1).copy()
     X_test = df_test.drop(columns=COLS_TO_DROP, axis=1).copy()
-
-    y_train = df_train["clase_binaria"]
-    y_valid = df_valid["clase_binaria"]
-
     final_preds = df_test["numero_de_cliente"].to_frame()
-
-    params = model.get_params()
-    params["objective"] = "binary"
-    params["metric"] = "auc"
-    params["force_col_wise"] = True
-    params["n_jobs"] = -1
 
     for seed in SEEDS:
         logger.info("Training with seed %s", seed)
-        params["random_state"] = seed
-        gbm = lgb.LGBMClassifier(**params)
-        gbm.fit(
-            X=X_train,
-            y=y_train,
-            eval_set=[(X_train, y_train), (X_valid, y_valid)],
-            eval_names=["train", "valid"],
-            eval_metric="auc",
-            init_model=model,
-        )
+        model.params["random_state"] = seed
+
         logger.info("Prediction with seed %s", seed)
-        preds = gbm.predict_proba(X_test, n_jobs=-1)
-        final_preds[f"seed_{seed}"] = preds[:, 1]
+        preds = model.predict(X_test)
+        final_preds[f"seed_{seed}"] = preds
 
     final_preds["Predicted"] = final_preds.iloc[:, 1:].mean(axis=1)
 
