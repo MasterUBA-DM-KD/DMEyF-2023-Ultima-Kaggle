@@ -5,7 +5,7 @@ RANDOM_STATE_EXTRA = 101
 SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
 
 # MLFLOW
-MLFLOW_TRACKING_URI = "http://34.172.84.47:5000/"
+MLFLOW_TRACKING_URI = "http://34.122.201.241:5000/"
 
 # PATHS
 PATH_CRUDO = "~/buckets/b1/datasets/raw/competencia_03_crudo.parquet"
@@ -60,12 +60,12 @@ TRAINING_MONTHS = [
     # 201905,
     # 201906,
     # 201907,
-    201908,
-    201908,
-    201909,
-    201910,
-    201911,
-    201912,
+    # 201908,
+    # 201908,
+    # 201909,
+    # 201910,
+    # 201911,
+    # 201912,
     202001,
     202002,
     202003,

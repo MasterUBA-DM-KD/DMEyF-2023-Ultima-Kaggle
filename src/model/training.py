@@ -68,7 +68,6 @@ def objective(
         "extra_seed": RANDOM_STATE_EXTRA,
         "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 200, 10000, step=100),
         "neg_bagging_fraction": trial.suggest_float("neg_bagging_fraction", 0.1, 0.9, step=0.1),
-        "num_boost_round": trial.suggest_int("num_boost_round", 50, 1000, 50),
         "learning_rate": trial.suggest_float("learning_rate", 1e-2, 1.5, log=True),
         "max_depth": trial.suggest_int("max_depth", 2, 256),
         "num_leaves": trial.suggest_int("num_leaves", 8, 1024),
@@ -107,7 +106,7 @@ def find_best_model(dataset_train: lgb.Dataset) -> Booster:
     study.optimize(
         lambda trial: objective(trial, dataset_train),
         n_trials=N_TRIALS_OPTIMIZE,
-        n_jobs=4,
+        n_jobs=1,
         callbacks=[mlflow_callback, callback],
         gc_after_trial=True,
     )
