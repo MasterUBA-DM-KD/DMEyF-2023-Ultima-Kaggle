@@ -54,8 +54,9 @@ def objective(
     dtrain: lgb.Dataset,
 ) -> float:
     params_space = {
-        "metric": "auc",
+        "metric": "auc_mu",
         "objective": "multiclass",
+        "num_class": 3,
         "boosting_type": "gbdt",
         "n_jobs": -1,
         "verbosity": -1,
