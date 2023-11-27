@@ -75,7 +75,7 @@ def objective(
 
     gbm = lightgbm.train(params_space, dtrain, feval=calculate_ganancia)
 
-    mlflow.lightgbm.log_model(gbm, f"model_{(str)}")
+    mlflow.lightgbm.log_model(gbm, f"model_{str(trial.number)}")
 
     trial.set_user_attr(key="best_booster", value=gbm)
 
