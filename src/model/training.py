@@ -68,17 +68,18 @@ def objective(
         "extra_seed": RANDOM_STATE_EXTRA,
         "save_binary": True,
         "max_bin": 30,
+        "is_unbalance": True,
         "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 200, 10000, step=100),
-        "neg_bagging_fraction": trial.suggest_float("neg_bagging_fraction", 0.1, 0.9, step=0.1),
-        "learning_rate": trial.suggest_float("learning_rate", 1e-2, 1.5, log=True),
+        "neg_bagging_fraction": trial.suggest_float("neg_bagging_fraction", 0.25, 0.28, step=0.005),
+        "learning_rate": trial.suggest_float("learning_rate", 1e-2, 2e-2, log=True),
         "max_depth": trial.suggest_int("max_depth", 2, 256),
-        "num_leaves": trial.suggest_int("num_leaves", 8, 1024),
+        "num_leaves": trial.suggest_int("num_leaves", 8, 70),
     }
 
     gbm = lightgbm.train(
         params_space,
         dtrain,
-        num_boost_round=trial.suggest_int("num_boost_round", 100, 1000, step=100),
+        num_boost_round=trial.suggest_int("num_boost_round", 100, 500, step=100),
         feval=calculate_ganancia,
     )
 
