@@ -75,6 +75,8 @@ def objective(
 
     gbm = lightgbm.train(params_space, dtrain, feval=calculate_ganancia)
 
+    mlflow.lightgbm.log_model(gbm, f"model_{(str)}")
+
     trial.set_user_attr(key="best_booster", value=gbm)
 
     preds = gbm.predict(dtrain.get_data(), n_jobs=-1)
