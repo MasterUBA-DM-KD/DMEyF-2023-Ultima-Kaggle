@@ -116,6 +116,6 @@ PARAMS = {
     "extra_seed": RANDOM_STATE_EXTRA,
     "save_binary": True,
     "max_bin": 30,
-    "num_leaves": 43158,
+    "num_leaves": 67,
     "neg_bagging_fraction": 0.275,
 }

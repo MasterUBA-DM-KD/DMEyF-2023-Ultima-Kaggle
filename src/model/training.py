@@ -168,17 +168,26 @@ def semillero(dataset_train: lgb.Dataset, df_test: pd.DataFrame, run_name: str) 
     base_path = os.path.join(BASE_PATH_PREDICTIONS, run_name)
     os.makedirs(base_path, exist_ok=True)
 
+    model = None
     X_test = df_test.drop(columns=COLS_TO_DROP, axis=1).copy()
     final_preds = df_test["numero_de_cliente"].to_frame()
 
     for seed in SEEDS:
         logger.info("Training with seed %s", seed)
-
         PARAMS["seed"] = seed
-        model = lightgbm.train(
-            train_set=dataset_train,
-            params=PARAMS,
-        )
+        if model is not None:
+            model = lightgbm.train(
+                train_set=dataset_train,
+                params=PARAMS,
+                init_model=model,
+                feval=calculate_ganancia,
+            )
+        else:
+            model = lightgbm.train(
+                train_set=dataset_train,
+                params=PARAMS,
+                feval=calculate_ganancia,
+            )
 
         logger.info("Prediction with seed %s", seed)
         preds = model.predict(X_test)
