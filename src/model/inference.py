@@ -25,6 +25,7 @@ def predictions_per_seed(df_test: pd.DataFrame, model: Booster, run_name: str) -
 
         logger.info("Prediction with seed %s", seed)
         preds = model.predict(X_test)
+        preds = preds.argmax(axis=1)
         final_preds[f"seed_{seed}"] = preds
 
     final_preds["Predicted"] = final_preds.iloc[:, 1:].mean(axis=1)
