@@ -156,13 +156,13 @@ def training_loop(df_train: pd.DataFrame, df_test: pd.DataFrame) -> Tuple[Booste
             mlflow.log_artifact("best_parameters.json", "best_model")
             mlflow.lightgbm.log_model(best_model, "best_model", input_example=X_train.loc[[0]])
         else:
-            semillero(dataset_train, df_test, run_name)
+            best_model = semillero(dataset_train, df_test, run_name)
     mlflow.end_run()
 
     return best_model, run_name
 
 
-def semillero(dataset_train: lgb.Dataset, df_test: pd.DataFrame, run_name: str) -> None:
+def semillero(dataset_train: lgb.Dataset, df_test: pd.DataFrame, run_name: str) -> Booster:
     logger.info("Starting predictions per seed")
 
     base_path = os.path.join(BASE_PATH_PREDICTIONS, run_name)
@@ -211,3 +211,5 @@ def semillero(dataset_train: lgb.Dataset, df_test: pd.DataFrame, run_name: str) 
 
     logger.info("Saved predictions to %s", base_path)
     logger.info("Finished predictions per seed")
+
+    return model
