@@ -91,8 +91,8 @@ def find_best_model(dataset_train: lgb.Dataset) -> Booster:
     pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
     mlflow_callback = MLflowCallback(
         tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
-        metric_name=METRIC,
-        create_experiment=False,
+        metric_name="f1_score",
+        create_experiment=True,
         mlflow_kwargs={
             "nested": True,
         },
