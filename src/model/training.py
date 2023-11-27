@@ -12,6 +12,7 @@ import pandas as pd
 from lightgbm import Booster
 from optuna.integration.mlflow import MLflowCallback
 from optuna.samplers import TPESampler
+from sklearn.metrics import f1_score
 
 from src.constants import (
     COLS_TO_DROP,
@@ -53,8 +54,8 @@ def objective(
     dtrain: lgb.Dataset,
 ) -> float:
     params_space = {
-        "metric": "custom",
-        "objective": "binary",
+        "metric": "auc",
+        "objective": "multiclass",
         "boosting_type": "gbdt",
         "n_jobs": -1,
         "verbosity": -1,
@@ -73,14 +74,15 @@ def objective(
         "num_leaves": trial.suggest_int("num_leaves", 8, 1024),
     }
 
-    gbm = lightgbm.train(params_space, dtrain, feval=calculate_ganancia)
+    gbm = lightgbm.train(params_space, dtrain, num_boost_round=trial.suggest_int("num_boost_round", 100, 1000, step=50))
 
     trial.set_user_attr(key="best_booster", value=gbm)
 
     preds = gbm.predict(dtrain.get_data(), n_jobs=-1)
-    _, ganancia, _ = calculate_ganancia(preds, dtrain)
 
-    return ganancia
+    fscore = f1_score(dtrain.get_label(), preds.argmax(axis=1), average="weighted")
+
+    return fscore
 
 
 def find_best_model(dataset_train: lgb.Dataset) -> Booster:
