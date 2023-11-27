@@ -4,7 +4,7 @@ import os
 import pandas as pd
 from lightgbm import Booster
 
-from src.constants import BASE_PATH_PREDICTIONS, COLS_TO_DROP
+from src.constants import BASE_PATH_PREDICTIONS, COLS_TO_DROP, SEEDS
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -19,8 +19,15 @@ def predictions_per_seed(df_test: pd.DataFrame, model: Booster, run_name: str) -
     X_test = df_test.drop(columns=COLS_TO_DROP, axis=1).copy()
     final_preds = df_test["numero_de_cliente"].to_frame()
 
-    preds = model.predict(X_test)
-    final_preds["Predicted"] = preds
+    for seed in SEEDS:
+        logger.info("Training with seed %s", seed)
+        model.params["random_state"] = seed
+
+        logger.info("Prediction with seed %s", seed)
+        preds = model.predict(X_test)
+        final_preds[f"seed_{seed}"] = preds
+
+    final_preds["Predicted"] = final_preds.iloc[:, 1:].mean(axis=1)
 
     logger.info("Aggregating predictions - all seeds")
     final_preds = final_preds.sort_values(by="Predicted", ascending=False)

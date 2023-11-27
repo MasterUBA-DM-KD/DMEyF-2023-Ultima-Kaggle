@@ -48,9 +48,9 @@ if __name__ == "__main__":
     logger.info("Closing connection to database")
     con.close()
 
-    df_train["clase_binaria"] = df_train["clase_ternaria"].map({"BAJA+2": 1, "BAJA+1": 0, "CONTINUA": 0})
+    df_train["clase_binaria"] = df_train["clase_ternaria"].map({"BAJA+2": 1, "BAJA+1": 1, "CONTINUA": 0})
     logger.info("Preprocess for training - Finished")
     logger.info("Training - Started")
-    best_model, run_name = training_loop(df_train)
+    best_model, run_name = training_loop(df_train, df_test)
     predictions_per_seed(df_train, best_model, run_name)
     logger.info("Training - Finished")

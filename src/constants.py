@@ -1,5 +1,6 @@
 # GENERAL PURPOSE
 RUN_ETL = False
+FINE_TUNE = False
 RANDOM_STATE = 42
 RANDOM_STATE_EXTRA = 101
 SEEDS = [100057, 101183, 195581, 210913, 219761, 221243, 222199, 222217]
@@ -55,24 +56,23 @@ WEIGHTS_TRAINING = {"BAJA+2": 1.0000002, "BAJA+1": 1.0000001, "CONTINUA": 1.0}
 TRAINING_MONTHS = [
     # 201901,
     # 201902,
-    # 201903,
-    # 201904,
-    # 201905,
-    # 201906,
-    # 201907,
-    # 201908,
-    # 201908,
-    # 201909,
-    # 201910,
-    # 201911,
-    # 201912,
+    201903,
+    201904,
+    201905,
+    201906,
+    201907,
+    201908,
+    201909,
+    201910,
+    201911,
+    201912,
     202001,
     202002,
-    202003,
-    202004,
-    202005,
-    202006,
-    202007,
+    # 202003,
+    # 202004,
+    # 202005,
+    # 202006,
+    # 202007,
     202008,
     202009,
     202010,
@@ -94,3 +94,28 @@ QUERY_DF_TRAIN = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_tr
 
 in_clause_test = ", ".join([str(i) for i in TEST_MONTH])
 QUERY_DF_TEST = f"SELECT * FROM competencia_03 WHERE foto_mes IN ({in_clause_test})"
+
+
+PARAMS = {
+    "objective": "binary",
+    "num_iterations": 1213,
+    "learning_rate": 0.0292608373298842,
+    "feature_fraction": 0.136781998386116,
+    "min_data_in_leaf": 43158,
+    "metric": "custom",
+    "boosting_type": "gbdt",
+    "n_jobs": -1,
+    "verbosity": -1,
+    "force_row_wise": True,
+    "zero_as_missing": True,
+    "first_metric_only": True,
+    "boost_from_average": True,
+    "feature_pre_filter": False,
+    "extra_trees": True,
+    "seed": RANDOM_STATE,
+    "extra_seed": RANDOM_STATE_EXTRA,
+    "save_binary": True,
+    "max_bin": 30,
+    "num_leaves": 43158,
+    "neg_bagging_fraction": 0.275,
+}
