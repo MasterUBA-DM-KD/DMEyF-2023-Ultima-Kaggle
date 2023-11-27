@@ -12,7 +12,6 @@ import pandas as pd
 from lightgbm import Booster
 from optuna.integration.mlflow import MLflowCallback
 from optuna.samplers import TPESampler
-from sklearn.metrics import f1_score
 
 from src.constants import (
     COLS_TO_DROP,
@@ -54,9 +53,8 @@ def objective(
     dtrain: lgb.Dataset,
 ) -> float:
     params_space = {
-        "metric": "auc_mu",
-        "objective": "multiclass",
-        "num_class": 3,
+        "metric": "custom",
+        "objective": "binary",
         "boosting_type": "gbdt",
         "n_jobs": -1,
         "verbosity": -1,
@@ -75,15 +73,14 @@ def objective(
         "num_leaves": trial.suggest_int("num_leaves", 8, 1024),
     }
 
-    gbm = lightgbm.train(params_space, dtrain, num_boost_round=trial.suggest_int("num_boost_round", 100, 1000, step=50))
+    gbm = lightgbm.train(params_space, dtrain, feval=calculate_ganancia)
 
     trial.set_user_attr(key="best_booster", value=gbm)
 
     preds = gbm.predict(dtrain.get_data(), n_jobs=-1)
+    _, ganancia, _ = calculate_ganancia(preds, dtrain)
 
-    fscore = f1_score(dtrain.get_label(), preds.argmax(axis=1), average="weighted")
-
-    return fscore
+    return ganancia
 
 
 def find_best_model(dataset_train: lgb.Dataset) -> Booster:
@@ -92,8 +89,8 @@ def find_best_model(dataset_train: lgb.Dataset) -> Booster:
     pruner = optuna.pruners.MedianPruner(n_warmup_steps=PRUNER_WARMUP_STEPS)
     mlflow_callback = MLflowCallback(
         tracking_uri=os.environ["MLFLOW_TRACKING_URI"],
-        metric_name="f1_score",
-        create_experiment=True,
+        metric_name=METRIC,
+        create_experiment=False,
         mlflow_kwargs={
             "nested": True,
         },
