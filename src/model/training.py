@@ -55,7 +55,7 @@ def objective(
     params_space = {
         "metric": "custom",
         "objective": "binary",
-        "boosting_type": "gbdt",
+        "boosting_type": "dart",
         "n_jobs": -1,
         "verbosity": -1,
         "force_row_wise": True,
@@ -66,6 +66,8 @@ def objective(
         "extra_trees": True,
         "seed": RANDOM_STATE,
         "extra_seed": RANDOM_STATE_EXTRA,
+        "save_binary": True,
+        "max_bin": 30,
         "min_data_in_leaf": trial.suggest_int("min_data_in_leaf", 200, 10000, step=100),
         "neg_bagging_fraction": trial.suggest_float("neg_bagging_fraction", 0.1, 0.9, step=0.1),
         "learning_rate": trial.suggest_float("learning_rate", 1e-2, 1.5, log=True),
@@ -73,7 +75,12 @@ def objective(
         "num_leaves": trial.suggest_int("num_leaves", 8, 1024),
     }
 
-    gbm = lightgbm.train(params_space, dtrain, feval=calculate_ganancia)
+    gbm = lightgbm.train(
+        params_space,
+        dtrain,
+        num_boost_round=trial.suggest_int("num_boost_round", 100, 1000, step=100),
+        feval=calculate_ganancia,
+    )
 
     mlflow.lightgbm.log_model(gbm, f"model_{str(trial.number)}")
 
