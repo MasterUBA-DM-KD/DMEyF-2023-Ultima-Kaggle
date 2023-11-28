@@ -180,13 +180,11 @@ def semillero(dataset_train: lgb.Dataset, df_test: pd.DataFrame, run_name: str) 
                 train_set=dataset_train,
                 params=PARAMS,
                 init_model=model,
-                feval=calculate_ganancia,
             )
         else:
             model = lightgbm.train(
                 train_set=dataset_train,
                 params=PARAMS,
-                feval=calculate_ganancia,
             )
 
         logger.info("Prediction with seed %s", seed)
