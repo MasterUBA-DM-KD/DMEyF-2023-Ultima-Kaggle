@@ -17,7 +17,7 @@ pip install -r DMEyF-2023-Ultima-Kaggle/requirements.txt
 Create a symbolic link to the database folder in GCP (gcsfuse might be active):
 
 ```bash
-ln -sf ~/buckets/b1/database/ DMEyF-2023-Ultima-Kaggle/
+ln -sf ~/buckets/b1/datasets/ DMEyF-2023-Ultima-Kaggle/
 ```
 
 ## MLFlow
